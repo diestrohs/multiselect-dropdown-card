@@ -99,12 +99,20 @@ items:
 | short | string | Nein | Kurzform für Zusammenfassung |
 | entity | string | Ja | Input Boolean Entity ID |
 
-## Zusammenfassung-Modus
+## State-Handling und Bedienung
 
-Wenn `item_summarize: true`:
-- **Einzelne Items**: Anzeige der Kurznamen mit Komma (z.B. "Mo, Di, Fr")
-- **Bereiche (3+ Items)**: Automatische Bereichszusammenfassung (z.B. "Mo – Fr, So")
-- Fallback auf Vollnamen, wenn `short` nicht definiert
+- Änderungen an Checkboxen im Dropdown werden sofort im Button angezeigt ("pending state")
+- Die tatsächlichen Home Assistant States werden erst beim Schließen des Dropdowns übernommen (Batch-Commit)
+- Klick auf Checkbox oder Zeile toggelt den pending state
+- Die Anzeige im Button bleibt immer synchron zu den aktuellen Auswahländerungen
+- Es gibt **keine** Autovervollständigung für Entity, sondern ein einfaches Textfeld
+
+## Zusammenfassung-Logik
+
+- **Einzelne Items**: Name/Kurzname
+- **Zwei aufeinanderfolgende Items**: Mit Komma getrennt (z.B. "Mo, Di")
+- **Drei oder mehr aufeinanderfolgende Items**: Bereich mit Gedankenstrich (z.B. "Mo – Mi")
+- Nicht zusammenhängende Bereiche werden mit Komma getrennt (z.B. "Mo – Mi, Fr, So")
 
 ## Design-Eigenschaften
 
