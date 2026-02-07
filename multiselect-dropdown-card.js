@@ -3,16 +3,18 @@ import { LitElement, html, css } from "https://unpkg.com/lit@2.8.0/index.js?modu
 class MultiSelectDropdown extends LitElement {
 
   static properties = {
-    hass: {},
-    config: {},
+    hass: { type: Object },
+    config: { type: Object },
     _open: { state: true },
     _direction: { state: true }, // up | down
+    _pendingStates: { state: true }, // Temporäre States während Dropdown offen
   };
 
   constructor() {
     super();
     this._open = false;
     this._direction = "down";
+    this._pendingStates = {}; // { entity_id: boolean }
     this._outsideHandler = this._handleOutside.bind(this);
   }
 
@@ -24,6 +26,15 @@ class MultiSelectDropdown extends LitElement {
   disconnectedCallback() {
     document.removeEventListener("click", this._outsideHandler);
     super.disconnectedCallback();
+  }
+
+  // Wird aufgerufen wenn hass sich ändert
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    if (changedProperties.has('hass') && this.hass) {
+      // Force re-render wenn sich hass states ändern
+      this.requestUpdate();
+    }
   }
 
   setConfig(config) {
@@ -63,6 +74,7 @@ class MultiSelectDropdown extends LitElement {
   /* ===== Outside click ===== */
   _handleOutside(e) {
     if (this._open && !this.shadowRoot.contains(e.target)) {
+      this._commitChanges();
       this._open = false;
     }
   }
@@ -70,6 +82,17 @@ class MultiSelectDropdown extends LitElement {
   /* ===== Toggle dropdown ===== */
   _toggleMenu(e) {
     e.stopPropagation();
+
+    if (!this._open) {
+      // Beim Öffnen: Aktuelle States in pending kopieren
+      this._pendingStates = {};
+      this.config.items.forEach(item => {
+        this._pendingStates[item.entity] = this.hass.states[item.entity]?.state === "on";
+      });
+    } else {
+      // Beim Schließen: Änderungen committen
+      this._commitChanges();
+    }
 
     const anchor = this.shadowRoot.getElementById("anchor");
     const rect = anchor.getBoundingClientRect();
@@ -270,11 +293,37 @@ class MultiSelectDropdown extends LitElement {
   `;
 
 
-  /* ===== Toggle entity ===== */
-  _toggleEntity(entity) {
-    this.hass.callService("input_boolean", "toggle", {
-      entity_id: entity,
+  /* ===== Toggle entity (nur pending state) ===== */
+  _togglePendingState(entity) {
+    this._pendingStates[entity] = !this._pendingStates[entity];
+    this.requestUpdate();
+  }
+
+  /* ===== Commit changes to Home Assistant ===== */
+  _commitChanges() {
+    if (!this._pendingStates || Object.keys(this._pendingStates).length === 0) return;
+    
+    this.config.items.forEach(item => {
+      const currentState = this.hass.states[item.entity]?.state === "on";
+      const pendingState = this._pendingStates[item.entity];
+      
+      // Nur Service-Call wenn sich der State geändert hat
+      if (currentState !== pendingState) {
+        this.hass.callService("input_boolean", pendingState ? "turn_on" : "turn_off", {
+          entity_id: item.entity,
+        });
+      }
     });
+    
+    this._pendingStates = {};
+  }
+
+  /* ===== Get state (pending oder real) ===== */
+  _getState(entity) {
+    if (this._open && this._pendingStates.hasOwnProperty(entity)) {
+      return this._pendingStates[entity];
+    }
+    return this.hass.states[entity]?.state === "on";
   }
 
   /* ===== Summary ===== */
@@ -283,13 +332,13 @@ class MultiSelectDropdown extends LitElement {
 
     const selected = items
       .map((i, idx) =>
-        this.hass.states[i.entity]?.state === "on" ? idx : null
+        this._getState(i.entity) ? idx : null
       )
       .filter(i => i !== null);
 
     if (!selected.length) return "—";
 
-    if (!this.config.item_summarize || selected.length < 3) {
+    if (!this.config.item_summarize) {
       return selected.map(i => items[i].short || items[i].name).join(", ");
     }
 
@@ -309,11 +358,18 @@ class MultiSelectDropdown extends LitElement {
     ranges.push([start, prev]);
 
     return ranges
-      .map(([a, b]) =>
-        a === b
-          ? items[a].short || items[a].name
-          : `${items[a].short || items[a].name} – ${items[b].short || items[b].name}`
-      )
+      .map(([a, b]) => {
+        // Nur einzelne Einträge
+        if (a === b) {
+          return items[a].short || items[a].name;
+        }
+        // Genau 2 Einträge in Folge - mit Komma getrennt
+        if (b === a + 1) {
+          return `${items[a].short || items[a].name}, ${items[b].short || items[b].name}`;
+        }
+        // 3+ Einträge in Folge - Bereich mit Gedankenstrich
+        return `${items[a].short || items[a].name} – ${items[b].short || items[b].name}`;
+      })
       .join(", ");
   }
 
@@ -344,10 +400,13 @@ class MultiSelectDropdown extends LitElement {
             ${this._open ? html`
               <div class="overlay ${this._direction}">
                 ${this.config.items.map(i => html`
-                  <div class="item" @click=${(e) => { e.stopPropagation(); this._toggleEntity(i.entity); }}>
+                  <div class="item" @click=${(e) => { 
+                    e.stopPropagation(); 
+                    this._togglePendingState(i.entity);
+                  }}>
                     <ha-checkbox
-                      .checked=${this.hass.states[i.entity]?.state === "on"}
-                      @change=${() => this._toggleEntity(i.entity)}>
+                      .checked=${this._getState(i.entity)}
+                      @click=${(e) => e.stopPropagation()}>
                     </ha-checkbox>
                     <span>${i.name}</span>
                   </div>
@@ -526,7 +585,7 @@ class MultiSelectDropdownEditor extends LitElement {
             ${items.map((item, index) => html`
               <div>
                 ${this._editingIndex === index 
-                  ? this._renderEditDialog() 
+                  ? this._renderEditDialog(index) 
                   : html`
                       <div class="item-entry">
                         <div class="item-name">${item.name || "(leer)"}</div>
@@ -548,17 +607,38 @@ class MultiSelectDropdownEditor extends LitElement {
               </div>
             `)}
           </div>
-          ${this._isNewItem ? this._renderEditDialog() : ""}
+          ${this._isNewItem ? this._renderEditDialog(null) : ""}
           <mwc-button @click=${this._addItem}>
             <ha-icon icon="mdi:plus" slot="icon"></ha-icon>
             Item hinzufügen
           </mwc-button>
         </div>
+
+        ${this._editingIndex !== null || this._isNewItem ? html`
+          <div class="option">
+            <label>Entity wählen</label>
+            <ha-select
+              .value=${this._editingItem?.entity || ""}
+              @change=${(e) => {
+                if (this._editingItem) {
+                  this._editingItem = { ...this._editingItem, entity: e.target.value };
+                }
+              }}
+            >
+              <mwc-list-item></mwc-list-item>
+              ${this._getInputBooleanEntities().map((entity) => html`
+                <mwc-list-item .value=${entity.entity_id}>
+                  ${entity.attributes.friendly_name || entity.entity_id}
+                </mwc-list-item>
+              `)}
+            </ha-select>
+          </div>
+        ` : ""}
       </div>
     `;
   }
 
-  _renderEditDialog() {
+  _renderEditDialog(index) {
     const item = this._editingItem;
     return html`
       <div class="edit-dialog">
@@ -571,11 +651,6 @@ class MultiSelectDropdownEditor extends LitElement {
           .value=${item.short || ""}
           label="Kurz (short)"
           @input=${(e) => (this._editingItem = { ...this._editingItem, short: e.target.value })}
-        ></ha-textfield>
-        <ha-textfield
-          .value=${item.entity || ""}
-          label="Entity"
-          @input=${(e) => (this._editingItem = { ...this._editingItem, entity: e.target.value })}
         ></ha-textfield>
         <div class="dialog-actions">
           <mwc-button @click=${this._cancelEdit}>Abbrechen</mwc-button>
@@ -612,6 +687,13 @@ class MultiSelectDropdownEditor extends LitElement {
     this._editingIndex = null;
     this._editingItem = null;
     this._isNewItem = false;
+  }
+
+  _getInputBooleanEntities() {
+    if (!this.hass) return [];
+    return Object.values(this.hass.states).filter(
+      (entity) => entity.entity_id.startsWith("input_boolean.")
+    );
   }
 
   _addItem() {
