@@ -613,27 +613,6 @@ class MultiSelectDropdownEditor extends LitElement {
             Item hinzufügen
           </mwc-button>
         </div>
-
-        ${this._editingIndex !== null || this._isNewItem ? html`
-          <div class="option">
-            <label>Entity wählen</label>
-            <ha-select
-              .value=${this._editingItem?.entity || ""}
-              @change=${(e) => {
-                if (this._editingItem) {
-                  this._editingItem = { ...this._editingItem, entity: e.target.value };
-                }
-              }}
-            >
-              <mwc-list-item></mwc-list-item>
-              ${this._getInputBooleanEntities().map((entity) => html`
-                <mwc-list-item .value=${entity.entity_id}>
-                  ${entity.attributes.friendly_name || entity.entity_id}
-                </mwc-list-item>
-              `)}
-            </ha-select>
-          </div>
-        ` : ""}
       </div>
     `;
   }
@@ -651,6 +630,12 @@ class MultiSelectDropdownEditor extends LitElement {
           .value=${item.short || ""}
           label="Kurz (short)"
           @input=${(e) => (this._editingItem = { ...this._editingItem, short: e.target.value })}
+        ></ha-textfield>
+        <ha-textfield
+          .value=${item.entity || ""}
+          label="Entity"
+          .placeholder=${"input_boolean.example"}
+          @input=${(e) => (this._editingItem = { ...this._editingItem, entity: e.target.value })}
         ></ha-textfield>
         <div class="dialog-actions">
           <mwc-button @click=${this._cancelEdit}>Abbrechen</mwc-button>
@@ -687,13 +672,6 @@ class MultiSelectDropdownEditor extends LitElement {
     this._editingIndex = null;
     this._editingItem = null;
     this._isNewItem = false;
-  }
-
-  _getInputBooleanEntities() {
-    if (!this.hass) return [];
-    return Object.values(this.hass.states).filter(
-      (entity) => entity.entity_id.startsWith("input_boolean.")
-    );
   }
 
   _addItem() {
