@@ -89,19 +89,18 @@ class MultiSelectDropdown extends LitElement {
       this.config.items.forEach(item => {
         this._pendingStates[item.entity] = this.hass.states[item.entity]?.state === "on";
       });
+
+      // Dropdown-Richtung nur beim Öffnen berechnen
+      const anchor = this.shadowRoot.getElementById("anchor");
+      const rect = anchor.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      this._direction =
+        spaceBelow < 250 && spaceAbove > spaceBelow ? "up" : "down";
     } else {
       // Beim Schließen: Änderungen committen
       this._commitChanges();
     }
-
-    const anchor = this.shadowRoot.getElementById("anchor");
-    const rect = anchor.getBoundingClientRect();
-
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-
-    this._direction =
-      spaceBelow < 250 && spaceAbove > spaceBelow ? "up" : "down";
 
     this._open = !this._open;
     if (!this._open && e?.currentTarget) {
