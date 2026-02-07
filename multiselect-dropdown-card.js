@@ -37,121 +37,6 @@ class MultiSelectDropdown extends LitElement {
     };
   }
 
-  static styles = css`
-    :host {
-      display: block;
-    }
-
-    /* ===== HA CARD ===== */
-    ha-card {
-      border-radius: var(--ha-card-border-radius, 12px);
-      border: var(--ha-card-border-width, 1px) solid var(--divider-color);
-      background: var(--card-background-color);
-      overflow: visible;
-    }
-
-    /* ===== ROW ===== */
-    .row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-    }
-
-    .icon {
-      flex-shrink: 0;
-    }
-
-    .name {
-      flex: 1;
-      min-width: 0;
-    }
-
-    /* ===== VALUE ===== */
-    .value-container {
-      position: relative;
-      width: 50%;
-      min-width: 0;
-    }
-
-    .value {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 6px 10px;
-      gap: 6px;
-      background: var(--secondary-background-color);
-      border-radius: 12px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .value-text {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* ===== ARROW ===== */
-    .arrow {
-      opacity: 0.6;
-      transform: rotate(0deg);
-      transition: transform 0.25s cubic-bezier(0.4, 0.0, 0.2, 1);
-    }
-
-    .arrow.open {
-      color: var(--primary-color);
-      opacity: 0.6;
-      transform: rotate(180deg);
-    }
-
-    /* ===== OVERLAY ===== */
-    .overlay {
-      position: absolute;
-      left: 0;
-      z-index: 10;
-      background: var(--secondary-background-color);
-      border-radius: 12px;
-      padding: 6px 0;
-      min-width: calc(100% + 20px);
-      max-height: 50vh;
-      overflow-y: auto;
-      animation: open 120ms ease-out;
-    }
-
-    .overlay.down {
-      top: calc(100% + 6px);
-    }
-
-    .overlay.up {
-      bottom: calc(100% + 6px);
-    }
-
-    @keyframes open {
-      from {
-        opacity: 0;
-        transform: scale(0.97);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    /* ===== ITEM ===== */
-    .item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 12px;
-      white-space: nowrap;
-    }
-
-    .item:hover {
-      background: rgba(var(--rgb-primary-color), 0.08);
-    }
-  `;
-
   /* ===== Outside click ===== */
   _handleOutside(e) {
     if (this._open && !this.shadowRoot.contains(e.target)) {
@@ -173,7 +58,186 @@ class MultiSelectDropdown extends LitElement {
       spaceBelow < 250 && spaceAbove > spaceBelow ? "up" : "down";
 
     this._open = !this._open;
+    if (!this._open && e?.currentTarget) {
+      e.currentTarget.blur();
+    }
   }
+
+  static styles = css`
+    :host {
+      display: block;
+    }
+
+    /* ===== HA CARD - Entity Row Pattern ===== */
+    ha-card {
+      border: var(--ha-card-border-width, 1px) solid var(--ha-card-border-color, var(--divider-color, rgba(0, 0, 0, 0.12)));
+      box-shadow: var(--ha-card-box-shadow, 0 2px 1px -1px rgba(0, 0, 0, 0.2));
+    }
+
+    /* ===== ENTITY ROW - Time Spinner Card Style ===== */
+    .row {
+      display: flex;
+      align-items: center;
+      padding: 0px 16px;
+      min-height: 48px;
+      box-sizing: border-box;
+    }
+
+    /* ===== ICON - State Badge 40px ===== */
+    ha-icon {
+      flex: 0 0 40px;
+      padding: 8px;
+      color: var(--state-icon-color, var(--paper-item-icon-color, #44739e));
+    }
+
+    /* ===== NAME - Info Text ===== */
+    .name {
+      margin-left: 4px;
+      margin-inline-start: 4px;
+      margin-inline-end: initial;
+      padding-right: 5px;
+      padding-inline-end: 5px;
+      flex: 1;
+      color: var(--primary-text-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ===== SELECT BUTTON - Time Button Style ===== */
+    .value-container {
+      position: relative;
+      width: 50%;
+      min-width: 0;
+      flex-shrink: 0;
+      margin-left: 5px;
+      margin-inline-start: 5px;
+      margin-inline-end: initial;
+      direction: var(--direction);
+    }
+
+    .value {
+      padding: 8px 5px 8px 12px;
+      height: 40px;
+      border: none;
+      border-bottom: 1px solid var(--mdc-text-field-idle-line-color, rgba(0, 0, 0, 0.42));
+      border-radius: 4px 4px 0 0;
+      background: var(--mdc-text-field-fill-color, whitesmoke);
+      color: var(--primary-text-color);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: border-color 0.2s, background-color 0.2s;
+      box-sizing: border-box;
+      position: relative;
+      width: 100%;
+    }
+
+    .value-label {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: var(--mdc-text-field-label-ink-color, rgba(0, 0, 0, 0.6));
+      white-space: nowrap;
+      font-family: Roboto, sans-serif;
+      font-weight: 400;
+      pointer-events: none;
+    }
+
+    .value:hover {
+      background: var(--mdc-text-field-hover-fill-color, var(--mdc-text-field-fill-color, whitesmoke));
+      border-bottom-color: var(--mdc-text-field-hover-line-color, rgba(0, 0, 0, 0.87));
+    }
+
+    .value:focus-visible {
+      outline: none;
+      border-bottom: 2px solid var(--mdc-theme-primary, var(--primary-color));
+    }
+
+    .value:active {
+      border-bottom: 2px solid var(--mdc-theme-primary, var(--primary-color));
+    }
+
+    .value.open {
+      border-bottom-color: var(--mdc-theme-primary, var(--primary-color));
+    }
+
+    /* ===== ARROW ICON ===== */
+    .arrow {
+      opacity: 0.6;
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 4px;
+    }
+
+    /* ===== VALUE TEXT ===== */
+    .value-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1 1 auto;
+      min-width: 0;
+      text-align: left;
+    }
+
+    /* ===== OVERLAY - Dropdown ===== */
+    .overlay {
+      position: absolute;
+      left: 0;
+      z-index: 10;
+      background: var(--card-background-color);
+      padding: 6px 0;
+      width: 100%;
+      max-height: 50vh;
+      overflow-y: auto;
+      animation: open 120ms ease-out;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .overlay.down {
+      top: calc(100% + 6px);
+    }
+
+    .overlay.up {
+      bottom: calc(100% + 6px);
+    }
+
+    @keyframes open {
+      from {
+        opacity: 0;
+        transform: scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* ===== ITEM - Dropdown Item ===== */
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      height: 40px;
+      white-space: nowrap;
+      color: var(--primary-text-color);
+    }
+
+    .item:hover {
+      background: rgba(var(--rgb-primary-color), 0.08);
+    }
+  `;
+
 
   /* ===== Toggle entity ===== */
   _toggleEntity(entity) {
@@ -238,18 +302,18 @@ class MultiSelectDropdown extends LitElement {
           <div class="name">${this.config.name || "Auswahl"}</div>
 
           <div class="value-container">
-            <div class="value" id="anchor" @click=${this._toggleMenu}>
+            <div class="value ${this._open ? "open" : ""}" id="anchor" @click=${this._toggleMenu}>
               <span class="value-text">${this._summary()}</span>
               <ha-icon
-                class="arrow ${this._open ? "open" : ""}"
-                icon="mdi:menu-down">
+                class="arrow"
+                icon="${this._open ? "mdi:menu-up" : "mdi:menu-down"}">
               </ha-icon>
             </div>
 
             ${this._open ? html`
               <div class="overlay ${this._direction}">
                 ${this.config.items.map(i => html`
-                  <div class="item" @click=${e => e.stopPropagation()}>
+                  <div class="item" @click=${(e) => { e.stopPropagation(); this._toggleEntity(i.entity); }}>
                     <ha-checkbox
                       .checked=${this.hass.states[i.entity]?.state === "on"}
                       @change=${() => this._toggleEntity(i.entity)}>
