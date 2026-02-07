@@ -150,16 +150,18 @@ class MultiSelectDropdown extends LitElement {
     }
 
     .value:hover {
-      background: var(--mdc-text-field-hover-fill-color, var(--mdc-text-field-fill-color, whitesmoke));
+      background: rgba(255, 255, 255, 0.1);
       border-bottom-color: var(--mdc-text-field-hover-line-color, rgba(0, 0, 0, 0.87));
     }
 
     .value:focus-visible {
       outline: none;
+      background: var(--mdc-text-field-hover-fill-color, var(--mdc-text-field-fill-color, whitesmoke));
       border-bottom: 2px solid var(--mdc-theme-primary, var(--primary-color));
     }
 
     .value:active {
+      background: var(--mdc-text-field-hover-fill-color, var(--mdc-text-field-fill-color, whitesmoke));
       border-bottom: 2px solid var(--mdc-theme-primary, var(--primary-color));
     }
 
