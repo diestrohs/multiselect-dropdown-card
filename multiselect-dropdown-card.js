@@ -236,7 +236,7 @@ class MultiSelectDropdown extends LitElement {
     }
 
     .item:hover {
-      background: rgba(var(--rgb-primary-color), 0.08);
+      background: rgba(var(--rgb-primary-color), 0.2);
     }
   `;
 
