@@ -408,6 +408,7 @@ class MultiSelectDropdownEditor extends LitElement {
       display: flex;
       align-items: center;
       gap: 12px;
+      height: 40px;
       padding: 8px;
       background: var(--mdc-theme-surface, #fff);
       border: 1px solid var(--divider-color, #e0e0e0);
@@ -523,24 +524,27 @@ class MultiSelectDropdownEditor extends LitElement {
           <label>Items</label>
           <div class="items-list">
             ${items.map((item, index) => html`
-              <div class="item-entry">
-                <div class="item-name">${item.name || "(leer)"}</div>
-                <div class="item-actions">
-                  <ha-icon
-                    icon="mdi:pencil"
-                    @click=${() => this._startEdit(index)}
-                    title="Bearbeiten"
-                  ></ha-icon>
-                  <ha-icon
-                    icon="mdi:delete"
-                    @click=${() => this._removeItem(index)}
-                    title="Löschen"
-                  ></ha-icon>
+              <div>
+                <div class="item-entry">
+                  <div class="item-name">${item.name || "(leer)"}</div>
+                  <div class="item-actions">
+                    <ha-icon
+                      icon="mdi:pencil"
+                      @click=${() => this._startEdit(index)}
+                      title="Bearbeiten"
+                    ></ha-icon>
+                    <ha-icon
+                      icon="mdi:delete"
+                      @click=${() => this._removeItem(index)}
+                      title="Löschen"
+                    ></ha-icon>
+                  </div>
                 </div>
+                ${this._editingIndex === index ? this._renderEditDialog() : ""}
               </div>
             `)}
           </div>
-          ${this._editingIndex !== null || this._isNewItem ? this._renderEditDialog() : ""}
+          ${this._isNewItem ? this._renderEditDialog() : ""}
           <mwc-button @click=${this._addItem}>
             <ha-icon icon="mdi:plus" slot="icon"></ha-icon>
             Item hinzufügen
