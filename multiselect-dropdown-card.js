@@ -172,6 +172,7 @@ class MultiSelectDropdown extends LitElement {
     /* ===== ARROW ICON ===== */
     .arrow {
       opacity: 0.6;
+      color: var(--primary-text-color);
       flex: 0 0 auto;
       width: 24px;
       height: 24px;
@@ -179,6 +180,10 @@ class MultiSelectDropdown extends LitElement {
       align-items: center;
       justify-content: center;
       margin-left: 4px;
+    }
+
+    .value.open .arrow {
+      color: var(--mdc-theme-primary, var(--primary-color));
     }
 
     /* ===== VALUE TEXT ===== */
