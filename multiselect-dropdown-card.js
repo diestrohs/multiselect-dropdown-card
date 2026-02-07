@@ -525,22 +525,26 @@ class MultiSelectDropdownEditor extends LitElement {
           <div class="items-list">
             ${items.map((item, index) => html`
               <div>
-                <div class="item-entry">
-                  <div class="item-name">${item.name || "(leer)"}</div>
-                  <div class="item-actions">
-                    <ha-icon
-                      icon="mdi:pencil"
-                      @click=${() => this._startEdit(index)}
-                      title="Bearbeiten"
-                    ></ha-icon>
-                    <ha-icon
-                      icon="mdi:delete"
-                      @click=${() => this._removeItem(index)}
-                      title="Löschen"
-                    ></ha-icon>
-                  </div>
-                </div>
-                ${this._editingIndex === index ? this._renderEditDialog() : ""}
+                ${this._editingIndex === index 
+                  ? this._renderEditDialog() 
+                  : html`
+                      <div class="item-entry">
+                        <div class="item-name">${item.name || "(leer)"}</div>
+                        <div class="item-actions">
+                          <ha-icon
+                            icon="mdi:pencil"
+                            @click=${() => this._startEdit(index)}
+                            title="Bearbeiten"
+                          ></ha-icon>
+                          <ha-icon
+                            icon="mdi:delete"
+                            @click=${() => this._removeItem(index)}
+                            title="Löschen"
+                          ></ha-icon>
+                        </div>
+                      </div>
+                    `
+                }
               </div>
             `)}
           </div>
