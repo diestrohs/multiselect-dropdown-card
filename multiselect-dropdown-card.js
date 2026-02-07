@@ -406,7 +406,8 @@ class MultiSelectDropdown extends LitElement {
                   }}>
                     <ha-checkbox
                       .checked=${this._getState(i.entity)}
-                      @click=${(e) => e.stopPropagation()}>
+                      @click=${(e) => e.stopPropagation()}
+                      @change=${(e) => { e.stopPropagation(); this._togglePendingState(i.entity); }}>
                     </ha-checkbox>
                     <span>${i.name}</span>
                   </div>
