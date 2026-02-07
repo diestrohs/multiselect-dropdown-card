@@ -183,6 +183,7 @@ class MultiSelectDropdown extends LitElement {
     }
 
     .value.open .arrow {
+      opacity: 1;
       color: var(--mdc-theme-primary, var(--primary-color));
     }
 
