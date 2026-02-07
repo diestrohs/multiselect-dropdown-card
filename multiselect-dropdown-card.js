@@ -37,6 +37,29 @@ class MultiSelectDropdown extends LitElement {
     };
   }
 
+  static getConfigElement() {
+    return document.createElement("multiselect-dropdown-editor");
+  }
+
+  static getStubConfig() {
+    return {
+      type: "custom:multiselect-dropdown",
+      name: "Wochentage",
+      icon: "mdi:calendar-expand-horizontal-outline",
+      icon_color: "#44739e",
+      item_summarize: true,
+      items: [
+        { name: "Montag", short: "Mo", entity: "input_boolean.irrigation_monday" },
+        { name: "Dienstag", short: "Di", entity: "input_boolean.irrigation_tuesday" },
+        { name: "Mittwoch", short: "Mi", entity: "input_boolean.irrigation_wednesday" },
+        { name: "Donnerstag", short: "Do", entity: "input_boolean.irrigation_thursday" },
+        { name: "Freitag", short: "Fr", entity: "input_boolean.irrigation_friday" },
+        { name: "Samstag", short: "Sa", entity: "input_boolean.irrigation_saturday" },
+        { name: "Sonntag", short: "So", entity: "input_boolean.irrigation_sunday" },
+      ],
+    };
+  }
+
   /* ===== Outside click ===== */
   _handleOutside(e) {
     if (this._open && !this.shadowRoot.contains(e.target)) {
@@ -78,8 +101,8 @@ class MultiSelectDropdown extends LitElement {
     .row {
       display: flex;
       align-items: center;
-      padding: 0px 16px;
-      min-height: 48px;
+      padding: 12px 16px;
+      min-height: 56px;
       box-sizing: border-box;
     }
 
@@ -339,3 +362,288 @@ class MultiSelectDropdown extends LitElement {
 }
 
 customElements.define("multiselect-dropdown", MultiSelectDropdown);
+
+class MultiSelectDropdownEditor extends LitElement {
+  static properties = {
+    hass: {},
+    config: {},
+    _editingIndex: { type: Number },
+    _editingItem: { type: Object },
+    _isNewItem: { type: Boolean },
+  };
+
+  constructor() {
+    super();
+    this._editingIndex = null;
+    this._editingItem = null;
+    this._isNewItem = false;
+  }
+
+  static styles = css`
+    .card-config {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .option {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .option label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--primary-text-color);
+    }
+
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item-entry {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+      background: var(--mdc-theme-surface, #fff);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 4px;
+    }
+
+    .item-name {
+      flex: 1;
+      color: var(--primary-text-color);
+      font-size: 14px;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    ha-icon {
+      cursor: pointer;
+      color: var(--secondary-text-color);
+      --mdc-icon-size: 20px;
+    }
+
+    ha-icon:hover {
+      color: var(--primary-text-color);
+    }
+
+    .edit-dialog {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 16px;
+      background: var(--mdc-theme-surface, #fff);
+      border: 1px solid var(--divider-color, #e0e0e0);
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+
+    .dialog-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    ha-textfield {
+      width: 100%;
+      min-width: 0;
+      display: block;
+    }
+
+    mwc-button {
+      align-self: flex-start;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+
+    mwc-button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  `;
+
+  setConfig(config) {
+    this.config = {
+      item_summarize: false,
+      items: [],
+      ...config,
+    };
+  }
+
+  render() {
+    if (!this.hass || !this.config) return html``;
+    const items = this.config.items || [];
+
+    return html`
+      <div class="card-config">
+        <div class="option">
+          <label>Name</label>
+          <ha-textfield
+            .value=${this.config.name || ""}
+            .placeholder=${"Wochentage"}
+            @input=${this._nameChanged}
+          ></ha-textfield>
+        </div>
+
+        <div class="option">
+          <label>Icon</label>
+          <ha-icon-picker
+            .hass=${this.hass}
+            .value=${this.config.icon || "mdi:calendar-expand-horizontal-outline"}
+            @value-changed=${this._iconChanged}
+          ></ha-icon-picker>
+        </div>
+
+        <div class="option">
+          <label>Icon Farbe</label>
+          <ha-textfield
+            .value=${this.config.icon_color || ""}
+            .placeholder=${"#44739e"}
+            @input=${this._iconColorChanged}
+          ></ha-textfield>
+        </div>
+
+        <div class="option">
+          <label>Zusammenfassen</label>
+          <ha-switch
+            .checked=${Boolean(this.config.item_summarize)}
+            @change=${this._summarizeChanged}
+          ></ha-switch>
+        </div>
+
+        <div class="option">
+          <label>Items</label>
+          <div class="items-list">
+            ${items.map((item, index) => html`
+              <div class="item-entry">
+                <div class="item-name">${item.name || "(leer)"}</div>
+                <div class="item-actions">
+                  <ha-icon
+                    icon="mdi:pencil"
+                    @click=${() => this._startEdit(index)}
+                    title="Bearbeiten"
+                  ></ha-icon>
+                  <ha-icon
+                    icon="mdi:delete"
+                    @click=${() => this._removeItem(index)}
+                    title="Löschen"
+                  ></ha-icon>
+                </div>
+              </div>
+            `)}
+          </div>
+          ${this._editingIndex !== null || this._isNewItem ? this._renderEditDialog() : ""}
+          <mwc-button @click=${this._addItem}>
+            <ha-icon icon="mdi:plus" slot="icon"></ha-icon>
+            Item hinzufügen
+          </mwc-button>
+        </div>
+      </div>
+    `;
+  }
+
+  _renderEditDialog() {
+    const item = this._editingItem;
+    return html`
+      <div class="edit-dialog">
+        <ha-textfield
+          .value=${item.name || ""}
+          label="Name"
+          @input=${(e) => (this._editingItem = { ...this._editingItem, name: e.target.value })}
+        ></ha-textfield>
+        <ha-textfield
+          .value=${item.short || ""}
+          label="Kurz (short)"
+          @input=${(e) => (this._editingItem = { ...this._editingItem, short: e.target.value })}
+        ></ha-textfield>
+        <ha-textfield
+          .value=${item.entity || ""}
+          label="Entity"
+          @input=${(e) => (this._editingItem = { ...this._editingItem, entity: e.target.value })}
+        ></ha-textfield>
+        <div class="dialog-actions">
+          <mwc-button @click=${this._cancelEdit}>Abbrechen</mwc-button>
+          <mwc-button @click=${this._saveEdit}>Speichern</mwc-button>
+        </div>
+      </div>
+    `;
+  }
+
+  _startEdit(index) {
+    const items = this.config.items || [];
+    this._editingIndex = index;
+    this._editingItem = { ...items[index] };
+  }
+
+  _saveEdit() {
+    const items = [...(this.config.items || [])];
+    
+    if (this._isNewItem) {
+      // Neues Item zur Liste hinzufügen
+      items.push(this._editingItem);
+    } else {
+      // Bestehendes Item aktualisieren
+      items[this._editingIndex] = this._editingItem;
+    }
+    
+    this._editingIndex = null;
+    this._editingItem = null;
+    this._isNewItem = false;
+    this._fireConfigChanged({ ...this.config, items });
+  }
+
+  _cancelEdit() {
+    this._editingIndex = null;
+    this._editingItem = null;
+    this._isNewItem = false;
+  }
+
+  _addItem() {
+    // Dialog für neues Item öffnen (ohne zur Config hinzuzufügen)
+    this._editingIndex = null;  // Keine Index für neues Item
+    this._editingItem = { name: "", short: "", entity: "" };
+    this._isNewItem = true;
+    this.requestUpdate();
+  }
+
+  _removeItem(index) {
+    const items = [...(this.config.items || [])];
+    items.splice(index, 1);
+    this._fireConfigChanged({ ...this.config, items });
+  }
+
+  _nameChanged(e) {
+    this._fireConfigChanged({ ...this.config, name: e.target.value });
+  }
+
+  _iconChanged(e) {
+    this._fireConfigChanged({ ...this.config, icon: e.detail.value });
+  }
+
+  _iconColorChanged(e) {
+    this._fireConfigChanged({ ...this.config, icon_color: e.target.value });
+  }
+
+  _summarizeChanged(e) {
+    this._fireConfigChanged({ ...this.config, item_summarize: e.target.checked });
+  }
+
+  _fireConfigChanged(config) {
+    const event = new CustomEvent("config-changed", {
+      detail: { config },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+}
+
+customElements.define("multiselect-dropdown-editor", MultiSelectDropdownEditor);
