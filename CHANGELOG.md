@@ -1,3 +1,15 @@
+## [0.0.4] - 2026-02-08
+
+### Added
+- Live-Update im Button auch im Text-Modus (pending state im Dropdown)
+- Konsistentes Verhalten zu Boolean-Modus
+
+### Fixed
+- Anzeige im Button wird sofort aktualisiert, sobald Checkboxen im Dropdown geklickt werden
+
+### Hinweise
+- Empfohlenes Update für alle Nutzer des Text-Modus
+
 # Changelog
 
 
