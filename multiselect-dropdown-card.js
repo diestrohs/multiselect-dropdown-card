@@ -4,6 +4,7 @@ import { LitElement, html, css } from "https://unpkg.com/lit@2.8.0/index.js?modu
 // Unterstützt mode: 'boolean' (default) oder 'text'.
 // Im Text-Modus wird die Auswahl als kommaseparierte Werte (item.value) in text_entity gespeichert.
 class MultiSelectDropdown extends LitElement {
+  _overlayElement = null;
 
   static properties = {
     hass: { type: Object },
@@ -121,16 +122,161 @@ class MultiSelectDropdown extends LitElement {
         });
       }
 
-      // Dropdown-Richtung nur beim Öffnen berechnen
+      // Overlay-Menü im <body> erzeugen
       const anchor = this.shadowRoot.getElementById("anchor");
+      if (!anchor) {
+        console.warn("Anchor-Element für Dropdown nicht gefunden.");
+        return;
+      }
       const rect = anchor.getBoundingClientRect();
+      if (!rect || rect.width === 0) {
+        console.warn("BoundingRect für Dropdown nicht gefunden oder Breite 0.");
+        return;
+      }
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
-      this._direction =
-        spaceBelow < 250 && spaceAbove > spaceBelow ? "up" : "down";
+      this._direction = spaceBelow < 250 && spaceAbove > spaceBelow ? "up" : "down";
+      this._overlayMaxHeight = this._direction === "down"
+        ? Math.max(spaceBelow - 16, 100)
+        : Math.max(spaceAbove - 16, 100);
+
+      // Overlay-DIV erzeugen
+      this._overlayElement = document.createElement("div");
+      this._overlayElement.className = `multiselect-dropdown-overlay ${this._direction}`;
+      // Positionierung relativ zum Viewport, inkl. Scroll-Offset
+      this._overlayElement.style.position = "absolute";
+      this._overlayElement.style.left = `${rect.left + window.scrollX}px`;
+      if (this._direction === "down") {
+        // Direkt unter dem Button
+        this._overlayElement.style.top = `${rect.bottom + window.scrollY}px`;
+      } else {
+        // Erst temporär positionieren, dann nach Höhe ausrichten
+        this._overlayElement.style.top = `${rect.top + window.scrollY}px`;
+      }
+      this._overlayElement.style.width = `${rect.width}px`;
+      this._overlayElement.style.maxHeight = `${this._overlayMaxHeight}px`;
+      this._overlayElement.style.zIndex = "9999";
+      this._overlayElement.style.background = "var(--card-background-color, #fff)";
+      this._overlayElement.style.borderRadius = "0 0 4px 4px";
+      this._overlayElement.style.boxShadow = "0 4px 16px rgba(0,0,0,0.25)";
+      this._overlayElement.style.overflowY = "auto";
+      this._overlayElement.style.padding = "6px 0";
+      this._overlayElement.style.visibility = "visible";
+      this._overlayElement.style.opacity = "1";
+      // Render overlay items as DOM elements
+      this._overlayElement.innerHTML = "";
+      this.config.items.forEach(i => {
+        const key = this.config.mode === "text" ? i.value : i.entity;
+        const checked = this._getState(key);
+        const itemDiv = document.createElement("div");
+        itemDiv.className = "item";
+        itemDiv.style.display = "flex";
+        itemDiv.style.alignItems = "center";
+        itemDiv.style.gap = "12px";
+        itemDiv.style.padding = "8px 12px";
+        itemDiv.style.height = "40px";
+        itemDiv.style.whiteSpace = "nowrap";
+        itemDiv.style.color = "var(--primary-text-color)";
+        itemDiv.style.background = checked ? "rgba(68,115,158,0.08)" : "";
+
+        // Checkbox
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.checked = checked;
+        checkbox.style.marginRight = "8px";
+        checkbox.addEventListener("click", ev => {
+          ev.stopPropagation();
+          this._togglePendingState(key);
+          // Re-render overlay to reflect changes
+          this._renderOverlayItems();
+        });
+
+        // Item label
+        const label = document.createElement("span");
+        label.textContent = i.name;
+
+        // Item click toggles state
+        itemDiv.addEventListener("click", () => {
+          this._togglePendingState(key);
+          this._renderOverlayItems();
+        });
+
+        itemDiv.appendChild(checkbox);
+        itemDiv.appendChild(label);
+        this._overlayElement.appendChild(itemDiv);
+      });
+
+      // Helper to re-render overlay items
+      this._renderOverlayItems = () => {
+        if (!this._overlayElement) return;
+        this._overlayElement.innerHTML = "";
+        this.config.items.forEach(i => {
+          const key = this.config.mode === "text" ? i.value : i.entity;
+          const checked = this._getState(key);
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "item";
+          itemDiv.style.display = "flex";
+          itemDiv.style.alignItems = "center";
+          itemDiv.style.gap = "12px";
+          itemDiv.style.padding = "8px 12px";
+          itemDiv.style.height = "40px";
+          itemDiv.style.whiteSpace = "nowrap";
+          itemDiv.style.color = "var(--primary-text-color)";
+          itemDiv.style.background = checked ? "rgba(68,115,158,0.08)" : "";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = checked;
+          checkbox.style.marginRight = "8px";
+          checkbox.addEventListener("click", ev => {
+            ev.stopPropagation();
+            this._togglePendingState(key);
+            this._renderOverlayItems();
+          });
+
+          const label = document.createElement("span");
+          label.textContent = i.name;
+
+          itemDiv.addEventListener("click", () => {
+            this._togglePendingState(key);
+            this._renderOverlayItems();
+          });
+
+          itemDiv.appendChild(checkbox);
+          itemDiv.appendChild(label);
+          this._overlayElement.appendChild(itemDiv);
+        });
+      };
+
+      document.body.appendChild(this._overlayElement);
+      // Nach dem Rendern: Bei "up" die Höhe ermitteln und Position korrigieren
+      if (this._direction === "up") {
+        // Timeout für Layout
+        setTimeout(() => {
+          const overlayHeight = this._overlayElement.offsetHeight;
+          this._overlayElement.style.top = `${rect.top + window.scrollY - overlayHeight}px`;
+        }, 0);
+      }
+      // Klick außerhalb schließt Overlay
+      this._overlayElement.addEventListener("click", (ev) => ev.stopPropagation());
+      document.addEventListener("click", this._closeOverlay = () => {
+        this._commitChanges();
+        this._open = false;
+        if (this._overlayElement) {
+          document.body.removeChild(this._overlayElement);
+          this._overlayElement = null;
+        }
+        document.removeEventListener("click", this._closeOverlay);
+        this.requestUpdate();
+      }, { once: true });
     } else {
       // Beim Schließen: Änderungen committen
       this._commitChanges();
+      if (this._overlayElement) {
+        document.body.removeChild(this._overlayElement);
+        this._overlayElement = null;
+      }
+      document.removeEventListener("click", this._closeOverlay);
     }
 
     this._open = !this._open;
@@ -488,27 +634,6 @@ class MultiSelectDropdown extends LitElement {
                 icon="${this._open ? "mdi:menu-up" : "mdi:menu-down"}">
               </ha-icon>
             </div>
-
-            ${this._open ? html`
-              <div class="overlay ${this._direction}">
-                ${this.config.items.map(i => {
-                  const key = this.config.mode === "text" ? i.value : i.entity;
-                  return html`
-                    <div class="item" @click=${(e) => { 
-                      e.stopPropagation(); 
-                      this._togglePendingState(key);
-                    }}>
-                      <ha-checkbox
-                        .checked=${this._getState(key)}
-                        @click=${(e) => e.stopPropagation()}
-                        @change=${(e) => { e.stopPropagation(); this._togglePendingState(key); }}>
-                      </ha-checkbox>
-                      <span>${i.name}</span>
-                    </div>
-                  `;
-                })}
-              </div>
-            ` : ""}
           </div>
         </div>
       </ha-card>
