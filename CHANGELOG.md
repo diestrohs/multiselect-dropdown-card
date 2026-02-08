@@ -1,5 +1,22 @@
 # Changelog
 
+
+## [0.0.4] - 2026-02-08
+
+### Added
+- Unterstützung für text.*-Entities (TextEntity) im Text-Modus
+- Werte werden immer als kommaseparierter String gelesen und geschrieben (z. B. "1,2,3")
+- Automatische Service-Erkennung: input_text.set_value oder text.set_value je nach Entity
+- Visual Editor: Modus-Auswahl, value-Feld pro Item, text_entity-Feld
+
+### Fixed
+- Bugfix: Keine JSON-Arrays mehr, nur String-Parsing
+- Bugfix: Mapping und Schreiben für EVCC-Integration
+
+### Hinweise
+- Kompatibel mit EVCC Scheduler und Home Assistant TextEntity
+- Breaking Change: JSON-Array-Handling entfernt, nur String
+
 ## [0.0.3] - 2026-02-08
 
 ### Änderungen

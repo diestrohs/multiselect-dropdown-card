@@ -29,12 +29,15 @@ Die Card kann vollständig über den visuellen Editor in Home Assistant konfigur
 
 ### Via YAML
 
+
+### Beispiel: Boolean-Modus (Standard)
 ```yaml
 type: custom:multiselect-dropdown
 name: Wochentage
 icon: mdi:calendar-expand-horizontal-outline
 icon_color: "#44739e"
 item_summarize: true
+mode: boolean   # optional, default
 items:
   - name: Montag
     short: Mo
@@ -58,6 +61,41 @@ items:
     short: So
     entity: input_boolean.irrigation_sunday
 ```
+
+### Beispiel: Text-Modus (input_text)
+```yaml
+type: custom:multiselect-dropdown
+name: Wochentage
+icon: mdi:calendar-expand-horizontal-outline
+icon_color: "#44739e"
+item_summarize: true
+mode: text
+text_entity: input_text.irrigation_days
+items:
+  - name: Montag
+    short: Mo
+    value: mon
+  - name: Dienstag
+    short: Di
+    value: tue
+  - name: Mittwoch
+    short: Mi
+    value: wed
+  - name: Donnerstag
+    short: Do
+    value: thu
+  - name: Freitag
+    short: Fr
+    value: fri
+  - name: Samstag
+    short: Sa
+    value: sat
+  - name: Sonntag
+    short: So
+    value: sun
+```
+
+Im Text-Modus werden die ausgewählten Werte kommasepariert in die text_entity geschrieben, z. B.: `mon,tue,wed,fri`
 
 ## Item-Editor
 
@@ -97,7 +135,8 @@ items:
 |----------|------|--------------|-------------|
 | name | string | Ja | Name im Dropdown |
 | short | string | Nein | Kurzform für Zusammenfassung |
-| entity | string | Ja | Input Boolean Entity ID |
+| entity | string | Ja (nur boolean) | Input Boolean Entity ID |
+| value | string | Ja (nur text) | Wert, der in text_entity geschrieben wird |
 
 ## State-Handling und Bedienung
 
@@ -126,7 +165,7 @@ items:
 ## Anforderungen
 
 - Home Assistant 2024.x oder höher
-- Input Boolean Entities
+- Für Text-Modus: input_text-Entity erforderlich
 
 ## Lizenz
 

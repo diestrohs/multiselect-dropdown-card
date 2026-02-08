@@ -1,6 +1,6 @@
 {
   "name": "Multiselect Dropdown Card",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "A Home Assistant custom card for multiple boolean entity selection with dropdown menu and visual editor",
   "author": "diestrohs",
   "license": "MIT"

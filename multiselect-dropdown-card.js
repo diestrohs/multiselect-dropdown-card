@@ -1,5 +1,8 @@
 import { LitElement, html, css } from "https://unpkg.com/lit@2.8.0/index.js?module";
 
+
+// Unterstützt mode: 'boolean' (default) oder 'text'.
+// Im Text-Modus wird die Auswahl als kommaseparierte Werte (item.value) in text_entity gespeichert.
 class MultiSelectDropdown extends LitElement {
 
   static properties = {
@@ -10,11 +13,12 @@ class MultiSelectDropdown extends LitElement {
     _pendingStates: { state: true }, // Temporäre States während Dropdown offen
   };
 
+
   constructor() {
     super();
     this._open = false;
     this._direction = "down";
-    this._pendingStates = {}; // { entity_id: boolean }
+    this._pendingStates = {}; // { entity_id: boolean } oder { value: boolean } im Text-Modus
     this._outsideHandler = this._handleOutside.bind(this);
   }
 
@@ -37,15 +41,19 @@ class MultiSelectDropdown extends LitElement {
     }
   }
 
+
   setConfig(config) {
     if (!Array.isArray(config.items)) {
       throw new Error("items missing");
     }
-
     this.config = {
       item_summarize: false,
+      mode: "boolean", // default
       ...config,
     };
+    if (this.config.mode === "text" && !this.config.text_entity) {
+      throw new Error("text_entity required in text mode");
+    }
   }
 
   static getConfigElement() {
@@ -80,15 +88,38 @@ class MultiSelectDropdown extends LitElement {
   }
 
   /* ===== Toggle dropdown ===== */
+
   _toggleMenu(e) {
     e.stopPropagation();
 
     if (!this._open) {
       // Beim Öffnen: Aktuelle States in pending kopieren
       this._pendingStates = {};
-      this.config.items.forEach(item => {
-        this._pendingStates[item.entity] = this.hass.states[item.entity]?.state === "on";
-      });
+      if (this.config.mode === "text") {
+        // Text-Modus: Werte aus text_entity splitten oder JSON-Array parsen
+        const textVal = this.hass.states[this.config.text_entity]?.state || "";
+        let selected = [];
+        try {
+          if (textVal.trim().startsWith("[") && textVal.trim().endsWith("]")) {
+            // JSON-Array
+            selected = JSON.parse(textVal);
+            if (!Array.isArray(selected)) selected = [];
+            selected = selected.map(String); // alles zu String für Vergleich
+          } else {
+            selected = textVal.split(",").map(s => s.trim()).filter(Boolean);
+          }
+        } catch (e) {
+          selected = [];
+        }
+        this.config.items.forEach(item => {
+          this._pendingStates[item.value] = selected.includes(String(item.value));
+        });
+      } else {
+        // Boolean-Modus wie bisher
+        this.config.items.forEach(item => {
+          this._pendingStates[item.entity] = this.hass.states[item.entity]?.state === "on";
+        });
+      }
 
       // Dropdown-Richtung nur beim Öffnen berechnen
       const anchor = this.shadowRoot.getElementById("anchor");
@@ -293,47 +324,114 @@ class MultiSelectDropdown extends LitElement {
 
 
   /* ===== Toggle entity (nur pending state) ===== */
-  _togglePendingState(entity) {
-    this._pendingStates[entity] = !this._pendingStates[entity];
+
+  _togglePendingState(key) {
+    this._pendingStates[key] = !this._pendingStates[key];
     this.requestUpdate();
   }
 
   /* ===== Commit changes to Home Assistant ===== */
+
   _commitChanges() {
     if (!this._pendingStates || Object.keys(this._pendingStates).length === 0) return;
-    
-    this.config.items.forEach(item => {
-      const currentState = this.hass.states[item.entity]?.state === "on";
-      const pendingState = this._pendingStates[item.entity];
-      
-      // Nur Service-Call wenn sich der State geändert hat
-      if (currentState !== pendingState) {
-        this.hass.callService("input_boolean", pendingState ? "turn_on" : "turn_off", {
-          entity_id: item.entity,
-        });
+    if (this.config.mode === "text") {
+      // Text-Modus: Werte sammeln und in text_entity schreiben
+      const selectedArr = this.config.items
+        .filter(item => this._pendingStates[item.value])
+        .map(item => item.value);
+      // Prüfen, ob vorher ein JSON-Array gespeichert war
+      const textVal = this.hass.states[this.config.text_entity]?.state || "";
+      let writeValue = "";
+      if (textVal.trim().startsWith("[") && textVal.trim().endsWith("]")) {
+        writeValue = JSON.stringify(selectedArr);
+      } else {
+        writeValue = selectedArr.join(",");
       }
-    });
-    
+      // Service je nach Entity-Typ wählen
+      let domain = "input_text";
+      if (this.config.text_entity.startsWith("text.")) {
+        domain = "text";
+      }
+      this.hass.callService(domain, "set_value", {
+        entity_id: this.config.text_entity,
+        value: writeValue,
+      });
+    } else {
+      // Boolean-Modus wie bisher
+      this.config.items.forEach(item => {
+        const currentState = this.hass.states[item.entity]?.state === "on";
+        const pendingState = this._pendingStates[item.entity];
+        if (currentState !== pendingState) {
+          this.hass.callService("input_boolean", pendingState ? "turn_on" : "turn_off", {
+            entity_id: item.entity,
+          });
+        }
+      });
+    }
     this._pendingStates = {};
   }
 
   /* ===== Get state (pending oder real) ===== */
-  _getState(entity) {
-    if (this._open && this._pendingStates.hasOwnProperty(entity)) {
-      return this._pendingStates[entity];
+
+  _getState(keyOrEntity) {
+    if (this.config.mode === "text") {
+      // Text-Modus: key = value
+      if (this._open && this._pendingStates.hasOwnProperty(keyOrEntity)) {
+        return this._pendingStates[keyOrEntity];
+      }
+      // Im geschlossenen Zustand: aus text_entity lesen (String oder JSON-Array)
+      const textVal = this.hass.states[this.config.text_entity]?.state || "";
+      let selected = [];
+      try {
+        if (textVal.trim().startsWith("[") && textVal.trim().endsWith("]")) {
+          selected = JSON.parse(textVal);
+          if (!Array.isArray(selected)) selected = [];
+          selected = selected.map(String);
+        } else {
+          selected = textVal.split(",").map(s => s.trim()).filter(Boolean);
+        }
+      } catch (e) {
+        selected = [];
+      }
+      return selected.includes(String(keyOrEntity));
+    } else {
+      // Boolean-Modus wie bisher
+      if (this._open && this._pendingStates.hasOwnProperty(keyOrEntity)) {
+        return this._pendingStates[keyOrEntity];
+      }
+      return this.hass.states[keyOrEntity]?.state === "on";
     }
-    return this.hass.states[entity]?.state === "on";
   }
 
   /* ===== Summary ===== */
+
   _summary() {
     const items = this.config.items;
-
-    const selected = items
-      .map((i, idx) =>
-        this._getState(i.entity) ? idx : null
-      )
-      .filter(i => i !== null);
+    let selected;
+    if (this.config.mode === "text") {
+      // Text-Modus: selected = Indizes der gewählten Werte (String oder JSON-Array)
+      const textVal = this.hass.states[this.config.text_entity]?.state || "";
+      let selectedVals = [];
+      try {
+        if (textVal.trim().startsWith("[") && textVal.trim().endsWith("]")) {
+          selectedVals = JSON.parse(textVal);
+          if (!Array.isArray(selectedVals)) selectedVals = [];
+          selectedVals = selectedVals.map(String);
+        } else {
+          selectedVals = textVal.split(",").map(s => s.trim()).filter(Boolean);
+        }
+      } catch (e) {
+        selectedVals = [];
+      }
+      selected = items
+        .map((i, idx) => selectedVals.includes(String(i.value)) ? idx : null)
+        .filter(i => i !== null);
+    } else {
+      // Boolean-Modus wie bisher
+      selected = items
+        .map((i, idx) => this._getState(i.entity) ? idx : null)
+        .filter(i => i !== null);
+    }
 
     if (!selected.length) return "—";
 
@@ -358,15 +456,12 @@ class MultiSelectDropdown extends LitElement {
 
     return ranges
       .map(([a, b]) => {
-        // Nur einzelne Einträge
         if (a === b) {
           return items[a].short || items[a].name;
         }
-        // Genau 2 Einträge in Folge - mit Komma getrennt
         if (b === a + 1) {
           return `${items[a].short || items[a].name}, ${items[b].short || items[b].name}`;
         }
-        // 3+ Einträge in Folge - Bereich mit Gedankenstrich
         return `${items[a].short || items[a].name} – ${items[b].short || items[b].name}`;
       })
       .join(", ");
@@ -398,19 +493,22 @@ class MultiSelectDropdown extends LitElement {
 
             ${this._open ? html`
               <div class="overlay ${this._direction}">
-                ${this.config.items.map(i => html`
-                  <div class="item" @click=${(e) => { 
-                    e.stopPropagation(); 
-                    this._togglePendingState(i.entity);
-                  }}>
-                    <ha-checkbox
-                      .checked=${this._getState(i.entity)}
-                      @click=${(e) => e.stopPropagation()}
-                      @change=${(e) => { e.stopPropagation(); this._togglePendingState(i.entity); }}>
-                    </ha-checkbox>
-                    <span>${i.name}</span>
-                  </div>
-                `)}
+                ${this.config.items.map(i => {
+                  const key = this.config.mode === "text" ? i.value : i.entity;
+                  return html`
+                    <div class="item" @click=${(e) => { 
+                      e.stopPropagation(); 
+                      this._togglePendingState(key);
+                    }}>
+                      <ha-checkbox
+                        .checked=${this._getState(key)}
+                        @click=${(e) => e.stopPropagation()}
+                        @change=${(e) => { e.stopPropagation(); this._togglePendingState(key); }}>
+                      </ha-checkbox>
+                      <span>${i.name}</span>
+                    </div>
+                  `;
+                })}
               </div>
             ` : ""}
           </div>
@@ -541,6 +639,7 @@ class MultiSelectDropdownEditor extends LitElement {
   render() {
     if (!this.hass || !this.config) return html``;
     const items = this.config.items || [];
+    const mode = this.config.mode || "boolean";
 
     return html`
       <div class="card-config">
@@ -572,6 +671,28 @@ class MultiSelectDropdownEditor extends LitElement {
         </div>
 
         <div class="option">
+          <label>Modus</label>
+          <ha-select
+            .value=${mode}
+            @selected=${e => this._modeChanged(e)}
+          >
+            <mwc-list-item value="boolean">Boolean (input_boolean)</mwc-list-item>
+            <mwc-list-item value="text">Text (input_text)</mwc-list-item>
+          </ha-select>
+        </div>
+
+        ${mode === "text" ? html`
+          <div class="option">
+            <label>Text Entity</label>
+            <ha-textfield
+              .value=${this.config.text_entity || ""}
+              .placeholder=${"input_text.irrigation_days"}
+              @input=${this._textEntityChanged}
+            ></ha-textfield>
+          </div>
+        ` : ""}
+
+        <div class="option">
           <label>Zusammenfassen</label>
           <ha-switch
             .checked=${Boolean(this.config.item_summarize)}
@@ -585,7 +706,7 @@ class MultiSelectDropdownEditor extends LitElement {
             ${items.map((item, index) => html`
               <div>
                 ${this._editingIndex === index 
-                  ? this._renderEditDialog(index) 
+                  ? this._renderEditDialog(index, mode) 
                   : html`
                       <div class="item-entry">
                         <div class="item-name">${item.name || "(leer)"}</div>
@@ -607,7 +728,7 @@ class MultiSelectDropdownEditor extends LitElement {
               </div>
             `)}
           </div>
-          ${this._isNewItem ? this._renderEditDialog(null) : ""}
+          ${this._isNewItem ? this._renderEditDialog(null, mode) : ""}
           <mwc-button @click=${this._addItem}>
             <ha-icon icon="mdi:plus" slot="icon"></ha-icon>
             Item hinzufügen
@@ -617,7 +738,7 @@ class MultiSelectDropdownEditor extends LitElement {
     `;
   }
 
-  _renderEditDialog(index) {
+  _renderEditDialog(index, mode) {
     const item = this._editingItem;
     return html`
       <div class="edit-dialog">
@@ -631,18 +752,36 @@ class MultiSelectDropdownEditor extends LitElement {
           label="Kurz (short)"
           @input=${(e) => (this._editingItem = { ...this._editingItem, short: e.target.value })}
         ></ha-textfield>
-        <ha-textfield
-          .value=${item.entity || ""}
-          label="Entity"
-          .placeholder=${"input_boolean.example"}
-          @input=${(e) => (this._editingItem = { ...this._editingItem, entity: e.target.value })}
-        ></ha-textfield>
+        ${mode === "text" ? html`
+          <ha-textfield
+            .value=${item.value || ""}
+            label="Wert (value)"
+            .placeholder=${"mon"}
+            @input=${(e) => (this._editingItem = { ...this._editingItem, value: e.target.value })}
+          ></ha-textfield>
+        ` : html`
+          <ha-textfield
+            .value=${item.entity || ""}
+            label="Entity"
+            .placeholder=${"input_boolean.example"}
+            @input=${(e) => (this._editingItem = { ...this._editingItem, entity: e.target.value })}
+          ></ha-textfield>
+        `}
         <div class="dialog-actions">
           <mwc-button @click=${this._cancelEdit}>Abbrechen</mwc-button>
           <mwc-button @click=${this._saveEdit}>Speichern</mwc-button>
         </div>
       </div>
     `;
+  }
+
+  _modeChanged(e) {
+    const value = e.target.value || e.detail.value;
+    this._fireConfigChanged({ ...this.config, mode: value });
+  }
+
+  _textEntityChanged(e) {
+    this._fireConfigChanged({ ...this.config, text_entity: e.target.value });
   }
 
   _startEdit(index) {
