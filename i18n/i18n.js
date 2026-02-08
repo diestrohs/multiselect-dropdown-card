@@ -1,3 +1,4 @@
+// Datei verschoben nach ../i18n.js
 export const i18n = {
   de: {
     weekdays: "Wochentage",
