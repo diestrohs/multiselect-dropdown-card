@@ -409,19 +409,17 @@ class MultiSelectDropdown extends LitElement {
     const items = this.config.items;
     let selected;
     if (this.config.mode === "text") {
-      // Text-Modus: selected = Indizes der gewählten Werte (String oder JSON-Array)
-      const textVal = this.hass.states[this.config.text_entity]?.state || "";
+      // Text-Modus: selected = Indizes der gewählten Werte
       let selectedVals = [];
-      try {
-        if (textVal.trim().startsWith("[") && textVal.trim().endsWith("]")) {
-          selectedVals = JSON.parse(textVal);
-          if (!Array.isArray(selectedVals)) selectedVals = [];
-          selectedVals = selectedVals.map(String);
-        } else {
-          selectedVals = textVal.split(",").map(s => s.trim()).filter(Boolean);
-        }
-      } catch (e) {
-        selectedVals = [];
+      if (this._open && this._pendingStates) {
+        // Live: pending state
+        selectedVals = items
+          .map(i => this._pendingStates[i.value] ? String(i.value) : null)
+          .filter(v => v !== null);
+      } else {
+        // Geschlossen: aus Entity
+        const textVal = this.hass.states[this.config.text_entity]?.state || "";
+        selectedVals = textVal.split(",").map(s => s.trim()).filter(Boolean);
       }
       selected = items
         .map((i, idx) => selectedVals.includes(String(i.value)) ? idx : null)
