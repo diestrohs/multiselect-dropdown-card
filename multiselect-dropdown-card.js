@@ -179,21 +179,23 @@ class MultiSelectDropdown extends LitElement {
         itemDiv.style.color = "var(--primary-text-color)";
         itemDiv.style.background = checked ? "rgba(68,115,158,0.08)" : "";
 
-        // Checkbox
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = checked;
-        checkbox.style.marginRight = "8px";
-        checkbox.addEventListener("click", ev => {
+        // HA Checkbox
+        const haCheckbox = document.createElement("ha-checkbox");
+        haCheckbox.setAttribute("aria-label", i.name);
+        haCheckbox.checked = checked;
+        haCheckbox.style.marginRight = "8px";
+        haCheckbox.style.setProperty("--mdc-theme-secondary", "var(--primary-color)");
+        haCheckbox.addEventListener("click", ev => {
           ev.stopPropagation();
           this._togglePendingState(key);
-          // Re-render overlay to reflect changes
           this._renderOverlayItems();
         });
 
         // Item label
         const label = document.createElement("span");
         label.textContent = i.name;
+        label.style.fontSize = "16px";
+        label.style.fontFamily = "Roboto, sans-serif";
 
         // Item click toggles state
         itemDiv.addEventListener("click", () => {
@@ -201,7 +203,7 @@ class MultiSelectDropdown extends LitElement {
           this._renderOverlayItems();
         });
 
-        itemDiv.appendChild(checkbox);
+        itemDiv.appendChild(haCheckbox);
         itemDiv.appendChild(label);
         this._overlayElement.appendChild(itemDiv);
       });
@@ -224,11 +226,13 @@ class MultiSelectDropdown extends LitElement {
           itemDiv.style.color = "var(--primary-text-color)";
           itemDiv.style.background = checked ? "rgba(68,115,158,0.08)" : "";
 
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = checked;
-          checkbox.style.marginRight = "8px";
-          checkbox.addEventListener("click", ev => {
+          // HA Checkbox
+          const haCheckbox = document.createElement("ha-checkbox");
+          haCheckbox.setAttribute("aria-label", i.name);
+          haCheckbox.checked = checked;
+          haCheckbox.style.marginRight = "8px";
+          haCheckbox.style.setProperty("--mdc-theme-secondary", "var(--primary-color)");
+          haCheckbox.addEventListener("click", ev => {
             ev.stopPropagation();
             this._togglePendingState(key);
             this._renderOverlayItems();
@@ -236,13 +240,15 @@ class MultiSelectDropdown extends LitElement {
 
           const label = document.createElement("span");
           label.textContent = i.name;
+          label.style.fontSize = "16px";
+          label.style.fontFamily = "Roboto, sans-serif";
 
           itemDiv.addEventListener("click", () => {
             this._togglePendingState(key);
             this._renderOverlayItems();
           });
 
-          itemDiv.appendChild(checkbox);
+          itemDiv.appendChild(haCheckbox);
           itemDiv.appendChild(label);
           this._overlayElement.appendChild(itemDiv);
         });
