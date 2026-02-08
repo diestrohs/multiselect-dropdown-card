@@ -124,7 +124,7 @@ class MultiSelectDropdown extends LitElement {
         });
       }
 
-      // Overlay-Menü im <body> erzeugen
+      // Overlay-Menü im <body> erzeugen, aber erst nach Richtungsberechnung
       const anchor = this.shadowRoot.getElementById("anchor");
       if (!anchor) {
         console.warn("Anchor-Element für Dropdown nicht gefunden.");
@@ -137,22 +137,24 @@ class MultiSelectDropdown extends LitElement {
       }
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
+      // Richtungsberechnung VOR Overlay-Erstellung
       this._direction = spaceBelow < 250 && spaceAbove > spaceBelow ? "up" : "down";
       this._overlayMaxHeight = this._direction === "down"
         ? Math.max(spaceBelow - 16, 100)
         : Math.max(spaceAbove - 16, 100);
 
-      // Overlay-DIV erzeugen
+      // Overlay-DIV erzeugen und direkt korrekt positionieren
       this._overlayElement = document.createElement("div");
       this._overlayElement.className = `multiselect-dropdown-overlay ${this._direction}`;
-      // Positionierung relativ zum Viewport, inkl. Scroll-Offset
       this._overlayElement.style.position = "absolute";
       this._overlayElement.style.left = `${rect.left + window.scrollX}px`;
+      // Zunächst unsichtbar machen
+      this._overlayElement.style.visibility = "hidden";
+      this._overlayElement.style.opacity = "0";
+      // Vorläufige Position (unten oder oben, wie bisher)
       if (this._direction === "down") {
-        // Direkt unter dem Button
         this._overlayElement.style.top = `${rect.bottom + window.scrollY}px`;
       } else {
-        // Erst temporär positionieren, dann nach Höhe ausrichten
         this._overlayElement.style.top = `${rect.top + window.scrollY}px`;
       }
       this._overlayElement.style.width = `${rect.width}px`;
@@ -163,9 +165,7 @@ class MultiSelectDropdown extends LitElement {
       this._overlayElement.style.boxShadow = "0 4px 16px rgba(0,0,0,0.25)";
       this._overlayElement.style.overflowY = "auto";
       this._overlayElement.style.padding = "6px 0";
-      this._overlayElement.style.visibility = "visible";
-      this._overlayElement.style.opacity = "1";
-      // Render overlay items as DOM elements
+      // Items rendern wie gehabt
       this._overlayElement.innerHTML = "";
       this.config.items.forEach(i => {
         const key = this.config.mode === "text" ? i.value : i.entity;
@@ -257,15 +257,17 @@ class MultiSelectDropdown extends LitElement {
       };
 
       document.body.appendChild(this._overlayElement);
-      // Nach dem Rendern: Bei "up" die Höhe ermitteln und Position korrigieren
-      if (this._direction === "up") {
-        // Timeout für Layout
-        setTimeout(() => {
+      // Nach dem Einfügen: Höhe messen, exakt positionieren, dann sichtbar machen
+      setTimeout(() => {
+        if (!this._overlayElement) return;
+        if (this._direction === "up") {
           const overlayHeight = this._overlayElement.offsetHeight;
           this._overlayElement.style.top = `${rect.top + window.scrollY - overlayHeight}px`;
-        }, 0);
-      }
-      // Klick außerhalb schließt Overlay
+        }
+        // Jetzt sichtbar machen
+        this._overlayElement.style.visibility = "visible";
+        this._overlayElement.style.opacity = "1";
+      }, 0);
       this._overlayElement.addEventListener("click", (ev) => ev.stopPropagation());
       document.addEventListener("click", this._closeOverlay = () => {
         this._commitChanges();
