@@ -1,3 +1,404 @@
+// ===== Internationalization =====
+const i18n = {
+  de: {
+    weekdays: "Wochentage",
+    select: "Auswahl",
+    icon: "Icon",
+    icon_color: "Icon Farbe",
+    short_name: "Kurznamen-Länge",
+    mode: "Modus",
+    boolean: "Boolean (input_boolean)",
+    text: "Text (input_text)",
+    text_entity: "Text Entity",
+    summarize: "Zusammenfassen",
+    items: "Items",
+    add_item: "Item hinzufügen",
+    name: "Name",
+    value: "Wert (value)",
+    entity: "Entity",
+    edit: "Bearbeiten",
+    delete: "Löschen",
+    cancel: "Abbrechen",
+    save: "Speichern",
+    empty: "(leer)",
+    dash: "—",
+  },
+  en: {
+    weekdays: "Weekdays",
+    select: "Select",
+    icon: "Icon",
+    icon_color: "Icon color",
+    short_name: "Short name length",
+    mode: "Mode",
+    boolean: "Boolean (input_boolean)",
+    text: "Text (input_text)",
+    text_entity: "Text entity",
+    summarize: "Summarize",
+    items: "Items",
+    add_item: "Add item",
+    name: "Name",
+    value: "Value",
+    entity: "Entity",
+    edit: "Edit",
+    delete: "Delete",
+    cancel: "Cancel",
+    save: "Save",
+    empty: "(empty)",
+    dash: "—",
+  },
+  "en-US": {},
+  "en-GB": {},
+  fr: {
+    weekdays: "Jours de la semaine",
+    select: "Sélectionner",
+    icon: "Icône",
+    icon_color: "Couleur de l'icône",
+    short_name: "Longueur du nom court",
+    mode: "Mode",
+    boolean: "Booléen (input_boolean)",
+    text: "Texte (input_text)",
+    text_entity: "Entité texte",
+    summarize: "Résumer",
+    items: "Éléments",
+    add_item: "Ajouter un élément",
+    name: "Nom",
+    value: "Valeur",
+    entity: "Entité",
+    edit: "Modifier",
+    delete: "Supprimer",
+    cancel: "Annuler",
+    save: "Enregistrer",
+    empty: "(vide)",
+    dash: "—",
+  },
+  es: {
+    weekdays: "Días de la semana",
+    select: "Seleccionar",
+    icon: "Icono",
+    icon_color: "Color del icono",
+    short_name: "Longitud del nombre corto",
+    mode: "Modo",
+    boolean: "Booleano (input_boolean)",
+    text: "Texto (input_text)",
+    text_entity: "Entidad de texto",
+    summarize: "Resumir",
+    items: "Elementos",
+    add_item: "Agregar elemento",
+    name: "Nombre",
+    value: "Valor",
+    entity: "Entidad",
+    edit: "Editar",
+    delete: "Eliminar",
+    cancel: "Cancelar",
+    save: "Guardar",
+    empty: "(vacío)",
+    dash: "—",
+  },
+  it: {
+    weekdays: "Giorni della settimana",
+    select: "Seleziona",
+    icon: "Icona",
+    icon_color: "Colore icona",
+    short_name: "Lunghezza nome breve",
+    mode: "Modalità",
+    boolean: "Booleano (input_boolean)",
+    text: "Testo (input_text)",
+    text_entity: "Entità testo",
+    summarize: "Riassumi",
+    items: "Elementi",
+    add_item: "Aggiungi elemento",
+    name: "Nome",
+    value: "Valore",
+    entity: "Entità",
+    edit: "Modifica",
+    delete: "Elimina",
+    cancel: "Annulla",
+    save: "Salva",
+    empty: "(vuoto)",
+    dash: "—",
+  },
+  nl: {
+    weekdays: "Weekdagen",
+    select: "Selecteer",
+    icon: "Icoon",
+    icon_color: "Icoonkleur",
+    short_name: "Lengte korte naam",
+    mode: "Modus",
+    boolean: "Boolean (input_boolean)",
+    text: "Tekst (input_text)",
+    text_entity: "Tekst entiteit",
+    summarize: "Samenvatten",
+    items: "Items",
+    add_item: "Item toevoegen",
+    name: "Naam",
+    value: "Waarde",
+    entity: "Entiteit",
+    edit: "Bewerken",
+    delete: "Verwijderen",
+    cancel: "Annuleren",
+    save: "Opslaan",
+    empty: "(leeg)",
+    dash: "—",
+  },
+  pl: {
+    weekdays: "Dni tygodnia",
+    select: "Wybierz",
+    icon: "Ikona",
+    icon_color: "Kolor ikony",
+    short_name: "Długość skrótu",
+    mode: "Tryb",
+    boolean: "Boolean (input_boolean)",
+    text: "Tekst (input_text)",
+    text_entity: "Encja tekstowa",
+    summarize: "Podsumuj",
+    items: "Elementy",
+    add_item: "Dodaj element",
+    name: "Nazwa",
+    value: "Wartość",
+    entity: "Encja",
+    edit: "Edytuj",
+    delete: "Usuń",
+    cancel: "Anuluj",
+    save: "Zapisz",
+    empty: "(puste)",
+    dash: "—",
+  },
+  pt: {
+    weekdays: "Dias da semana",
+    select: "Selecionar",
+    icon: "Ícone",
+    icon_color: "Cor do ícone",
+    short_name: "Comprimento do nome curto",
+    mode: "Modo",
+    boolean: "Booleano (input_boolean)",
+    text: "Texto (input_text)",
+    text_entity: "Entidade de texto",
+    summarize: "Resumir",
+    items: "Itens",
+    add_item: "Adicionar item",
+    name: "Nome",
+    value: "Valor",
+    entity: "Entidade",
+    edit: "Editar",
+    delete: "Excluir",
+    cancel: "Cancelar",
+    save: "Salvar",
+    empty: "(vazio)",
+    dash: "—",
+  },
+  sv: {
+    weekdays: "Veckodagar",
+    select: "Välj",
+    icon: "Ikon",
+    icon_color: "Ikonfärg",
+    short_name: "Kortnamn längd",
+    mode: "Läge",
+    boolean: "Boolean (input_boolean)",
+    text: "Text (input_text)",
+    text_entity: "Textentitet",
+    summarize: "Sammanfatta",
+    items: "Objekt",
+    add_item: "Lägg till objekt",
+    name: "Namn",
+    value: "Värde",
+    entity: "Entitet",
+    edit: "Redigera",
+    delete: "Ta bort",
+    cancel: "Avbryt",
+    save: "Spara",
+    empty: "(tom)",
+    dash: "—",
+  },
+  da: {
+    weekdays: "Ugedage",
+    select: "Vælg",
+    icon: "Ikon",
+    icon_color: "Ikonfarve",
+    short_name: "Kort navn længde",
+    mode: "Tilstand",
+    boolean: "Boolean (input_boolean)",
+    text: "Tekst (input_text)",
+    text_entity: "Tekst entitet",
+    summarize: "Opsummer",
+    items: "Elementer",
+    add_item: "Tilføj element",
+    name: "Navn",
+    value: "Værdi",
+    entity: "Entitet",
+    edit: "Rediger",
+    delete: "Slet",
+    cancel: "Annuller",
+    save: "Gem",
+    empty: "(tom)",
+    dash: "—",
+  },
+  no: {
+    weekdays: "Ukedager",
+    select: "Velg",
+    icon: "Ikon",
+    icon_color: "Ikonfarge",
+    short_name: "Kort navn lengde",
+    mode: "Modus",
+    boolean: "Boolean (input_boolean)",
+    text: "Tekst (input_text)",
+    text_entity: "Tekst entitet",
+    summarize: "Oppsummer",
+    items: "Elementer",
+    add_item: "Legg til element",
+    name: "Navn",
+    value: "Verdi",
+    entity: "Entitet",
+    edit: "Rediger",
+    delete: "Slett",
+    cancel: "Avbryt",
+    save: "Lagre",
+    empty: "(tom)",
+    dash: "—",
+  },
+  fi: {
+    weekdays: "Viikonpäivät",
+    select: "Valitse",
+    icon: "Ikoni",
+    icon_color: "Ikonin väri",
+    short_name: "Lyhyen nimen pituus",
+    mode: "Tila",
+    boolean: "Boolean (input_boolean)",
+    text: "Teksti (input_text)",
+    text_entity: "Tekstientiteetti",
+    summarize: "Yhteenveto",
+    items: "Kohteet",
+    add_item: "Lisää kohde",
+    name: "Nimi",
+    value: "Arvo",
+    entity: "Entiteetti",
+    edit: "Muokkaa",
+    delete: "Poista",
+    cancel: "Peruuta",
+    save: "Tallenna",
+    empty: "(tyhjä)",
+    dash: "—",
+  },
+  ja: {
+    weekdays: "曜日",
+    select: "選択",
+    icon: "アイコン",
+    icon_color: "アイコン色",
+    short_name: "短い名前の長さ",
+    mode: "モード",
+    boolean: "ブール値 (input_boolean)",
+    text: "テキスト (input_text)",
+    text_entity: "テキストエンティティ",
+    summarize: "要約",
+    items: "項目",
+    add_item: "項目を追加",
+    name: "名前",
+    value: "値",
+    entity: "エンティティ",
+    edit: "編集",
+    delete: "削除",
+    cancel: "キャンセル",
+    save: "保存",
+    empty: "(空)",
+    dash: "—",
+  },
+  zh: {
+    weekdays: "星期",
+    select: "选择",
+    icon: "图标",
+    icon_color: "图标颜色",
+    short_name: "短名称长度",
+    mode: "模式",
+    boolean: "布尔值 (input_boolean)",
+    text: "文本 (input_text)",
+    text_entity: "文本实体",
+    summarize: "汇总",
+    items: "项目",
+    add_item: "添加项目",
+    name: "名称",
+    value: "值",
+    entity: "实体",
+    edit: "编辑",
+    delete: "删除",
+    cancel: "取消",
+    save: "保存",
+    empty: "(空)",
+    dash: "—",
+  },
+  ko: {
+    weekdays: "요일",
+    select: "선택",
+    icon: "아이콘",
+    icon_color: "아이콘 색상",
+    short_name: "짧은 이름 길이",
+    mode: "모드",
+    boolean: "불리언 (input_boolean)",
+    text: "텍스트 (input_text)",
+    text_entity: "텍스트 엔티티",
+    summarize: "요약",
+    items: "항목",
+    add_item: "항목 추가",
+    name: "이름",
+    value: "값",
+    entity: "엔티티",
+    edit: "편집",
+    delete: "삭제",
+    cancel: "취소",
+    save: "저장",
+    empty: "(비어 있음)",
+    dash: "—",
+  },
+  ru: {
+    weekdays: "Дни недели",
+    select: "Выбрать",
+    icon: "Иконка",
+    icon_color: "Цвет иконки",
+    short_name: "Длина короткого имени",
+    mode: "Режим",
+    boolean: "Булево (input_boolean)",
+    text: "Текст (input_text)",
+    text_entity: "Текстовая сущность",
+    summarize: "Суммировать",
+    items: "Элементы",
+    add_item: "Добавить элемент",
+    name: "Имя",
+    value: "Значение",
+    entity: "Сущность",
+    edit: "Редактировать",
+    delete: "Удалить",
+    cancel: "Отмена",
+    save: "Сохранить",
+    empty: "(пусто)",
+    dash: "—",
+  },
+  uk: {
+    weekdays: "Дні тижня",
+    select: "Вибрати",
+    icon: "Іконка",
+    icon_color: "Колір іконки",
+    short_name: "Довжина короткої назви",
+    mode: "Режим",
+    boolean: "Булевий (input_boolean)",
+    text: "Текст (input_text)",
+    text_entity: "Текстова сутність",
+    summarize: "Підсумувати",
+    items: "Елементи",
+    add_item: "Додати елемент",
+    name: "Ім'я",
+    value: "Значення",
+    entity: "Сутність",
+    edit: "Редагувати",
+    delete: "Видалити",
+    cancel: "Скасувати",
+    save: "Зберегти",
+    empty: "(порожньо)",
+    dash: "—",
+  },
+};
+
+function t(key, hass) {
+  const lang = hass?.language || hass?.selectedLanguage || "de";
+  return i18n[lang]?.[key] || i18n.de[key] || key;
+}
 import { LitElement, html, css } from "https://unpkg.com/lit@2.8.0/index.js?module";
 
 
@@ -64,18 +465,19 @@ class MultiSelectDropdown extends LitElement {
   static getStubConfig() {
     return {
       type: "custom:multiselect-dropdown",
-      name: "Wochentage",
+      name: i18n.de.weekdays,
       icon: "mdi:calendar-expand-horizontal-outline",
       icon_color: "#44739e",
       item_summarize: true,
+      short_name: 2,
       items: [
-        { name: "Montag", short: "Mo", entity: "input_boolean.irrigation_monday" },
-        { name: "Dienstag", short: "Di", entity: "input_boolean.irrigation_tuesday" },
-        { name: "Mittwoch", short: "Mi", entity: "input_boolean.irrigation_wednesday" },
-        { name: "Donnerstag", short: "Do", entity: "input_boolean.irrigation_thursday" },
-        { name: "Freitag", short: "Fr", entity: "input_boolean.irrigation_friday" },
-        { name: "Samstag", short: "Sa", entity: "input_boolean.irrigation_saturday" },
-        { name: "Sonntag", short: "So", entity: "input_boolean.irrigation_sunday" },
+        { name: "Montag", entity: "input_boolean.irrigation_monday" },
+        { name: "Dienstag", entity: "input_boolean.irrigation_tuesday" },
+        { name: "Mittwoch", entity: "input_boolean.irrigation_wednesday" },
+        { name: "Donnerstag", entity: "input_boolean.irrigation_thursday" },
+        { name: "Freitag", entity: "input_boolean.irrigation_friday" },
+        { name: "Samstag", entity: "input_boolean.irrigation_saturday" },
+        { name: "Sonntag", entity: "input_boolean.irrigation_sunday" },
       ],
     };
   }
@@ -583,10 +985,14 @@ class MultiSelectDropdown extends LitElement {
         .filter(i => i !== null);
     }
 
-    if (!selected.length) return "—";
+    if (!selected.length) return t("dash", this.hass);
+
+    // Use short_name config for label length
+    const shortLen = this.config.short_name || 2;
+    const shortLabel = i => i.name?.substring(0, shortLen);
 
     if (!this.config.item_summarize) {
-      return selected.map(i => items[i].short || items[i].name).join(", ");
+      return selected.map(i => shortLabel(items[i])).join(", ");
     }
 
     const ranges = [];
@@ -607,12 +1013,12 @@ class MultiSelectDropdown extends LitElement {
     return ranges
       .map(([a, b]) => {
         if (a === b) {
-          return items[a].short || items[a].name;
+          return shortLabel(items[a]);
         }
         if (b === a + 1) {
-          return `${items[a].short || items[a].name}, ${items[b].short || items[b].name}`;
+          return `${shortLabel(items[a])}, ${shortLabel(items[b])}`;
         }
-        return `${items[a].short || items[a].name} – ${items[b].short || items[b].name}`;
+        return `${shortLabel(items[a])} – ${shortLabel(items[b])}`;
       })
       .join(", ");
   }
@@ -630,7 +1036,7 @@ class MultiSelectDropdown extends LitElement {
             style="color:${iconColor}">
           </ha-icon>
 
-          <div class="name">${this.config.name || "Auswahl"}</div>
+          <div class="name">${this.config.name || t("select", this.hass)}</div>
 
           <div class="value-container">
             <div class="value ${this._open ? "open" : ""}" id="anchor" @click=${this._toggleMenu}>
@@ -760,6 +1166,7 @@ class MultiSelectDropdownEditor extends LitElement {
   setConfig(config) {
     this.config = {
       item_summarize: false,
+      short_name: 2,
       items: [],
       ...config,
     };
@@ -773,16 +1180,16 @@ class MultiSelectDropdownEditor extends LitElement {
     return html`
       <div class="card-config">
         <div class="option">
-          <label>Name</label>
+          <label>${t("name", this.hass)}</label>
           <ha-textfield
             .value=${this.config.name || ""}
-            .placeholder=${"Wochentage"}
+            .placeholder=${t("weekdays", this.hass)}
             @input=${this._nameChanged}
           ></ha-textfield>
         </div>
 
         <div class="option">
-          <label>Icon</label>
+          <label>${t("icon", this.hass)}</label>
           <ha-icon-picker
             .hass=${this.hass}
             .value=${this.config.icon || "mdi:calendar-expand-horizontal-outline"}
@@ -791,7 +1198,7 @@ class MultiSelectDropdownEditor extends LitElement {
         </div>
 
         <div class="option">
-          <label>Icon Farbe</label>
+          <label>${t("icon_color", this.hass)}</label>
           <ha-textfield
             .value=${this.config.icon_color || ""}
             .placeholder=${"#44739e"}
@@ -800,19 +1207,30 @@ class MultiSelectDropdownEditor extends LitElement {
         </div>
 
         <div class="option">
-          <label>Modus</label>
+          <label>${t("short_name", this.hass)}</label>
+          <ha-textfield
+            .value=${this.config.short_name || 2}
+            type="number"
+            min="1"
+            max="10"
+            @input=${this._shortNameChanged}
+          ></ha-textfield>
+        </div>
+
+        <div class="option">
+          <label>${t("mode", this.hass)}</label>
           <ha-select
             .value=${mode}
             @selected=${e => this._modeChanged(e)}
           >
-            <mwc-list-item value="boolean">Boolean (input_boolean)</mwc-list-item>
-            <mwc-list-item value="text">Text (input_text)</mwc-list-item>
+            <mwc-list-item value="boolean">${t("boolean", this.hass)}</mwc-list-item>
+            <mwc-list-item value="text">${t("text", this.hass)}</mwc-list-item>
           </ha-select>
         </div>
 
         ${mode === "text" ? html`
           <div class="option">
-            <label>Text Entity</label>
+            <label>${t("text_entity", this.hass)}</label>
             <ha-textfield
               .value=${this.config.text_entity || ""}
               .placeholder=${"input_text.irrigation_days"}
@@ -822,7 +1240,7 @@ class MultiSelectDropdownEditor extends LitElement {
         ` : ""}
 
         <div class="option">
-          <label>Zusammenfassen</label>
+          <label>${t("summarize", this.hass)}</label>
           <ha-switch
             .checked=${Boolean(this.config.item_summarize)}
             @change=${this._summarizeChanged}
@@ -830,7 +1248,7 @@ class MultiSelectDropdownEditor extends LitElement {
         </div>
 
         <div class="option">
-          <label>Items</label>
+          <label>${t("items", this.hass)}</label>
           <div class="items-list">
             ${items.map((item, index) => html`
               <div>
@@ -838,17 +1256,17 @@ class MultiSelectDropdownEditor extends LitElement {
                   ? this._renderEditDialog(index, mode) 
                   : html`
                       <div class="item-entry">
-                        <div class="item-name">${item.name || "(leer)"}</div>
+                        <div class="item-name">${item.name || t("empty", this.hass)}</div>
                         <div class="item-actions">
                           <ha-icon
                             icon="mdi:pencil"
                             @click=${() => this._startEdit(index)}
-                            title="Bearbeiten"
+                            title="${t("edit", this.hass)}"
                           ></ha-icon>
                           <ha-icon
                             icon="mdi:delete"
                             @click=${() => this._removeItem(index)}
-                            title="Löschen"
+                            title="${t("delete", this.hass)}"
                           ></ha-icon>
                         </div>
                       </div>
@@ -860,7 +1278,7 @@ class MultiSelectDropdownEditor extends LitElement {
           ${this._isNewItem ? this._renderEditDialog(null, mode) : ""}
           <mwc-button @click=${this._addItem}>
             <ha-icon icon="mdi:plus" slot="icon"></ha-icon>
-            Item hinzufügen
+            ${t("add_item", this.hass)}
           </mwc-button>
         </div>
       </div>
@@ -873,32 +1291,27 @@ class MultiSelectDropdownEditor extends LitElement {
       <div class="edit-dialog">
         <ha-textfield
           .value=${item.name || ""}
-          label="Name"
+          label="${t("name", this.hass)}"
           @input=${(e) => (this._editingItem = { ...this._editingItem, name: e.target.value })}
-        ></ha-textfield>
-        <ha-textfield
-          .value=${item.short || ""}
-          label="Kurz (short)"
-          @input=${(e) => (this._editingItem = { ...this._editingItem, short: e.target.value })}
         ></ha-textfield>
         ${mode === "text" ? html`
           <ha-textfield
             .value=${item.value || ""}
-            label="Wert (value)"
+            label="${t("value", this.hass)}"
             .placeholder=${"mon"}
             @input=${(e) => (this._editingItem = { ...this._editingItem, value: e.target.value })}
           ></ha-textfield>
         ` : html`
           <ha-textfield
             .value=${item.entity || ""}
-            label="Entity"
+            label="${t("entity", this.hass)}"
             .placeholder=${"input_boolean.example"}
             @input=${(e) => (this._editingItem = { ...this._editingItem, entity: e.target.value })}
           ></ha-textfield>
         `}
         <div class="dialog-actions">
-          <mwc-button @click=${this._cancelEdit}>Abbrechen</mwc-button>
-          <mwc-button @click=${this._saveEdit}>Speichern</mwc-button>
+          <mwc-button @click=${this._cancelEdit}>${t("cancel", this.hass)}</mwc-button>
+          <mwc-button @click=${this._saveEdit}>${t("save", this.hass)}</mwc-button>
         </div>
       </div>
     `;
@@ -945,9 +1358,15 @@ class MultiSelectDropdownEditor extends LitElement {
   _addItem() {
     // Dialog für neues Item öffnen (ohne zur Config hinzuzufügen)
     this._editingIndex = null;  // Keine Index für neues Item
-    this._editingItem = { name: "", short: "", entity: "" };
+    this._editingItem = { name: "", entity: "" };
     this._isNewItem = true;
     this.requestUpdate();
+  }
+  _shortNameChanged(e) {
+    let val = parseInt(e.target.value, 10);
+    if (isNaN(val) || val < 1) val = 1;
+    if (val > 10) val = 10;
+    this._fireConfigChanged({ ...this.config, short_name: val });
   }
 
   _removeItem(index) {
