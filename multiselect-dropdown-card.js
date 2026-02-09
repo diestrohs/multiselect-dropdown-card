@@ -87,6 +87,7 @@ class MultiSelectDropdown extends LitElement {
     if (this._open && !this.shadowRoot.contains(e.target)) {
       this._commitChanges();
       this._open = false;
+      this._pendingStates = null;
     }
   }
 
@@ -137,8 +138,8 @@ class MultiSelectDropdown extends LitElement {
       }
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
-      // Richtungsberechnung VOR Overlay-Erstellung
-      this._direction = spaceBelow < 250 && spaceAbove > spaceBelow ? "up" : "down";
+      // Richtungsberechnung: Immer in Richtung mit mehr Platz öffnen
+      this._direction = spaceAbove > spaceBelow ? "up" : "down";
       this._overlayMaxHeight = this._direction === "down"
         ? Math.max(spaceBelow - 16, 100)
         : Math.max(spaceAbove - 16, 100);
@@ -151,8 +152,8 @@ class MultiSelectDropdown extends LitElement {
         const rect = anchor.getBoundingClientRect();
         const spaceBelow = window.innerHeight - rect.bottom;
         const spaceAbove = rect.top;
-        // Richtung dynamisch berechnen
-        const direction = spaceBelow < 250 && spaceAbove > spaceBelow ? "up" : "down";
+        // Richtung dynamisch berechnen: Immer in Richtung mit mehr Platz öffnen
+        const direction = spaceAbove > spaceBelow ? "up" : "down";
         this._overlayElement.className = `multiselect-dropdown-overlay ${direction}`;
         const overlayMaxHeight = direction === "down"
           ? Math.max(spaceBelow - 16, 100)
@@ -287,6 +288,7 @@ class MultiSelectDropdown extends LitElement {
       document.addEventListener("click", this._closeOverlay = () => {
         this._commitChanges();
         this._open = false;
+        this._pendingStates = null;
         if (this._overlayElement) {
           document.body.removeChild(this._overlayElement);
           this._overlayElement = null;
@@ -303,6 +305,7 @@ class MultiSelectDropdown extends LitElement {
     } else {
       // Beim Schließen: Änderungen committen
       this._commitChanges();
+      this._pendingStates = null;
       if (this._overlayElement) {
         document.body.removeChild(this._overlayElement);
         this._overlayElement = null;
@@ -319,6 +322,7 @@ class MultiSelectDropdown extends LitElement {
     this._open = !this._open;
     if (!this._open && e?.currentTarget) {
       e.currentTarget.blur();
+      this._pendingStates = null;
     }
   }
 

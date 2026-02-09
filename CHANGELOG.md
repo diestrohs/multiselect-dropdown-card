@@ -1,3 +1,12 @@
+# [0.0.5] - 2026-02-09
+
+### Changed
+- Dropdown-Öffnungsrichtung immer nach verfügbarem Platz (oben/unten)
+- Flackern im Button-Text nach Speichern behoben
+- Visual Editor: Überschrift und Button heißen jetzt "Optionen"
+
+### Hinweise
+- Empfohlenes Update für alle Nutzer
 ## [0.0.4] - 2026-02-08
 
 ### Added
