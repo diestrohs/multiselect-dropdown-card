@@ -147,24 +147,39 @@ class MultiSelectDropdown extends LitElement {
       this._overlayElement = document.createElement("div");
       this._overlayElement.className = `multiselect-dropdown-overlay ${this._direction}`;
       this._overlayElement.style.position = "absolute";
-      this._overlayElement.style.left = `${rect.left + window.scrollX}px`;
-      // Zunächst unsichtbar machen
-      this._overlayElement.style.visibility = "hidden";
-      this._overlayElement.style.opacity = "0";
-      // Vorläufige Position (unten oder oben, wie bisher)
-      if (this._direction === "down") {
-        this._overlayElement.style.top = `${rect.bottom + window.scrollY}px`;
-      } else {
-        this._overlayElement.style.top = `${rect.top + window.scrollY}px`;
-      }
-      this._overlayElement.style.width = `${rect.width}px`;
-      this._overlayElement.style.maxHeight = `${this._overlayMaxHeight}px`;
+      this._updateOverlayPosition = () => {
+        const rect = anchor.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        // Richtung dynamisch berechnen
+        const direction = spaceBelow < 250 && spaceAbove > spaceBelow ? "up" : "down";
+        this._overlayElement.className = `multiselect-dropdown-overlay ${direction}`;
+        const overlayMaxHeight = direction === "down"
+          ? Math.max(spaceBelow - 16, 100)
+          : Math.max(spaceAbove - 16, 100);
+        this._overlayElement.style.left = `${rect.left + window.scrollX}px`;
+        if (direction === "down") {
+          this._overlayElement.style.top = `${rect.bottom + window.scrollY}px`;
+        } else {
+          const overlayHeight = this._overlayElement.offsetHeight;
+          this._overlayElement.style.top = `${rect.top + window.scrollY - overlayHeight}px`;
+        }
+        this._overlayElement.style.width = `${rect.width}px`;
+        this._overlayElement.style.maxHeight = `${overlayMaxHeight}px`;
+      };
+      this._updateOverlayPosition();
       this._overlayElement.style.zIndex = "9999";
       this._overlayElement.style.background = "var(--card-background-color, #fff)";
       this._overlayElement.style.borderRadius = "0 0 4px 4px";
       this._overlayElement.style.boxShadow = "0 4px 16px rgba(0,0,0,0.25)";
       this._overlayElement.style.overflowY = "auto";
       this._overlayElement.style.padding = "6px 0";
+      // Zunächst unsichtbar machen
+      this._overlayElement.style.visibility = "hidden";
+      this._overlayElement.style.opacity = "0";
+      // Event Listener für Scroll und Resize
+      window.addEventListener("scroll", this._updateOverlayPosition, true);
+      window.addEventListener("resize", this._updateOverlayPosition);
       // Items rendern wie gehabt
       this._overlayElement.innerHTML = "";
       this.config.items.forEach(i => {
@@ -262,9 +277,9 @@ class MultiSelectDropdown extends LitElement {
         if (!this._overlayElement) return;
         if (this._direction === "up") {
           const overlayHeight = this._overlayElement.offsetHeight;
+          const rect = anchor.getBoundingClientRect();
           this._overlayElement.style.top = `${rect.top + window.scrollY - overlayHeight}px`;
         }
-        // Jetzt sichtbar machen
         this._overlayElement.style.visibility = "visible";
         this._overlayElement.style.opacity = "1";
       }, 0);
@@ -276,6 +291,12 @@ class MultiSelectDropdown extends LitElement {
           document.body.removeChild(this._overlayElement);
           this._overlayElement = null;
         }
+        // Event Listener entfernen
+        if (this._updateOverlayPosition) {
+          window.removeEventListener("scroll", this._updateOverlayPosition, true);
+          window.removeEventListener("resize", this._updateOverlayPosition);
+          this._updateOverlayPosition = null;
+        }
         document.removeEventListener("click", this._closeOverlay);
         this.requestUpdate();
       }, { once: true });
@@ -285,6 +306,12 @@ class MultiSelectDropdown extends LitElement {
       if (this._overlayElement) {
         document.body.removeChild(this._overlayElement);
         this._overlayElement = null;
+      }
+      // Event Listener entfernen
+      if (this._updateOverlayPosition) {
+        window.removeEventListener("scroll", this._updateOverlayPosition, true);
+        window.removeEventListener("resize", this._updateOverlayPosition);
+        this._updateOverlayPosition = null;
       }
       document.removeEventListener("click", this._closeOverlay);
     }
