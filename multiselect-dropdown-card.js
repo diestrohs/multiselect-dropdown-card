@@ -339,10 +339,8 @@ class MultiSelectDropdown extends LitElement {
 
     /* ===== ENTITY ROW - Time Spinner Card Style ===== */
     .row {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
+      display: flex;
       align-items: center;
-      gap: 12px;
       padding: 12px 16px;
       min-height: 56px;
       box-sizing: border-box;
@@ -357,8 +355,8 @@ class MultiSelectDropdown extends LitElement {
 
     /* ===== NAME - Info Text ===== */
     .label {
-      margin-left: 4px;
-      margin-inline-start: 4px;
+      margin-left: 12px;
+      margin-inline-start: 0;
       margin-inline-end: initial;
       padding-right: 5px;
       padding-inline-end: 5px;
@@ -372,10 +370,11 @@ class MultiSelectDropdown extends LitElement {
     /* ===== SELECT BUTTON - Time Button Style ===== */
     .value-container {
       position: relative;
-      width: auto;
-      min-width: 0;
-      margin-left: 0;
-      margin-inline-start: 0;
+      display: flex;
+      justify-content: flex-end;
+      width: 50%;
+      margin-left: auto;
+      margin-inline-start: auto;
       margin-inline-end: initial;
       direction: var(--direction);
     }
