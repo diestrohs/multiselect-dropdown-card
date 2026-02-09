@@ -22,11 +22,11 @@ Datei `multiselect-dropdown-card.js` zu Ihrer Home Assistant `www` Ordner hinzuf
 
 ### Via Visueller Editor
 Die Card kann vollständig über den visuellen Editor in Home Assistant konfiguriert werden:
-- **Name**: Titel der Card
+**Label**: Titel der Card
 - **Icon**: Icon-Auswahl (mdi-Icons)
 - **Icon Farbe**: Hexadezimal-Farbcode (z.B. #44739e)
 - **Zusammenfassen**: Toggle für Zusammenfassung der Selections
-- **Items**: Verwaltung der Dropdown-Items mit Dialog-Editor
+- **Optionen**: Verwaltung der Dropdown-Optionen mit Dialog-Editor
 
 ### Via YAML
 
@@ -39,27 +39,20 @@ icon: mdi:calendar-expand-horizontal-outline
 icon_color: "#44739e"
 item_summarize: true
 mode: boolean   # optional, default
-items:
-  - name: Montag
-    short: Mo
+options:
+  - label: Montag
     entity: input_boolean.irrigation_monday
-  - name: Dienstag
-    short: Di
+  - label: Dienstag
     entity: input_boolean.irrigation_tuesday
-  - name: Mittwoch
-    short: Mi
+  - label: Mittwoch
     entity: input_boolean.irrigation_wednesday
-  - name: Donnerstag
-    short: Do
+  - label: Donnerstag
     entity: input_boolean.irrigation_thursday
-  - name: Freitag
-    short: Fr
+  - label: Freitag
     entity: input_boolean.irrigation_friday
-  - name: Samstag
-    short: Sa
+  - label: Samstag
     entity: input_boolean.irrigation_saturday
-  - name: Sonntag
-    short: So
+  - label: Sonntag
     entity: input_boolean.irrigation_sunday
 ```
 
@@ -72,27 +65,20 @@ icon_color: "#44739e"
 item_summarize: true
 mode: text
 text_entity: input_text.irrigation_days
-items:
-  - name: Montag
-    short: Mo
+options:
+  - label: Montag
     value: mon
-  - name: Dienstag
-    short: Di
+  - label: Dienstag
     value: tue
-  - name: Mittwoch
-    short: Mi
+  - label: Mittwoch
     value: wed
-  - name: Donnerstag
-    short: Do
+  - label: Donnerstag
     value: thu
-  - name: Freitag
-    short: Fr
+  - label: Freitag
     value: fri
-  - name: Samstag
-    short: Sa
+  - label: Samstag
     value: sat
-  - name: Sonntag
-    short: So
+  - label: Sonntag
     value: sun
 ```
 
@@ -104,15 +90,15 @@ Im Text-Modus werden die ausgewählten Werte kommasepariert in die text_entity g
 1. Klick auf **"+ Option hinzufügen"** Button
 2. Dialog öffnet sich mit Eingabefeldern
 3. Füllen Sie aus:
-  - **Name**: Vollanzeige im Dropdown
-  - **Kurz (short)**: Kurzform für Zusammenfassung
-  - **Entity**: Input Boolean Entity ID (nur Boolean-Modus) oder **Value** (nur Text-Modus)
+  - **Label**: Text im Dropdown
+  - **Entity**: Input Boolean Entity ID (nur Boolean-Modus)
+  - **Value**: Wert für Text-Modus
 4. **Speichern** - Option wird zur Liste hinzugefügt
 
 ### Optionen bearbeiten
 1. Klick auf **Stift-Icon** neben der Option
 2. Eintrag wird durch Dialog ersetzt
-3. Änderungen durchführen
+3. Änderungen durchführen (Label, Entity oder Value)
 4. **Speichern** - Option wird aktualisiert
 5. **Abbrechen** - Änderungen verwerfen
 
@@ -128,14 +114,13 @@ Im Text-Modus werden die ausgewählten Werte kommasepariert in die text_entity g
 | icon | string | Nein | "mdi:calendar" | MDI Icon |
 | icon_color | string | Nein | - | Hex-Farbcode |
 | item_summarize | boolean | Nein | false | Zusammenfassung aktivieren |
-| items | array | Ja | [] | Array von Optionen-Objekten |
+| options | array | Ja | [] | Array von Optionen-Objekten |
 
 ### Optionen-Objekt
 
 | Property | Type | Erforderlich | Beschreibung |
 |----------|------|--------------|-------------|
-| name | string | Ja | Name im Dropdown |
-| short | string | Nein | Kurzform für Zusammenfassung |
+| label | string | Ja | Text im Dropdown |
 | entity | string | Ja (nur boolean) | Input Boolean Entity ID |
 | value | string | Ja (nur text) | Wert, der in text_entity geschrieben wird |
 
@@ -163,7 +148,7 @@ Im Text-Modus werden die ausgewählten Werte kommasepariert in die text_entity g
 - **Item-Höhe**: 40px
 - **Icon**: Wechsel zwischen `mdi:menu-down` (geschlossen) und `mdi:menu-up` (offen)
 - **Icon-Opacity**: 0.6 (normal), 1.0 (offen) mit Primärfarbe
-- **Hover-Effekt**: Weiße Overlay auf Button und Items
+- **Hover-Effekt**: Weiße Overlay auf Button und Optionen
 
 ## Anforderungen
 

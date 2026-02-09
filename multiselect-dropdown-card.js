@@ -71,13 +71,13 @@ class MultiSelectDropdown extends LitElement {
       item_summarize: true,
       short_name: 2,
       items: [
-        { name: "Montag", entity: "input_boolean.irrigation_monday" },
-        { name: "Dienstag", entity: "input_boolean.irrigation_tuesday" },
-        { name: "Mittwoch", entity: "input_boolean.irrigation_wednesday" },
-        { name: "Donnerstag", entity: "input_boolean.irrigation_thursday" },
-        { name: "Freitag", entity: "input_boolean.irrigation_friday" },
-        { name: "Samstag", entity: "input_boolean.irrigation_saturday" },
-        { name: "Sonntag", entity: "input_boolean.irrigation_sunday" },
+        { label: "Montag", entity: "input_boolean.irrigation_monday" },
+        { label: "Dienstag", entity: "input_boolean.irrigation_tuesday" },
+        { label: "Mittwoch", entity: "input_boolean.irrigation_wednesday" },
+        { label: "Donnerstag", entity: "input_boolean.irrigation_thursday" },
+        { label: "Freitag", entity: "input_boolean.irrigation_friday" },
+        { label: "Samstag", entity: "input_boolean.irrigation_saturday" },
+        { label: "Sonntag", entity: "input_boolean.irrigation_sunday" },
       ],
     };
   }
@@ -199,7 +199,7 @@ class MultiSelectDropdown extends LitElement {
 
         // HA Checkbox
         const haCheckbox = document.createElement("ha-checkbox");
-        haCheckbox.setAttribute("aria-label", i.name);
+        haCheckbox.setAttribute("aria-label", i.label);
         haCheckbox.checked = checked;
         haCheckbox.style.marginRight = "8px";
         haCheckbox.style.setProperty("--mdc-theme-secondary", "var(--primary-color)");
@@ -211,7 +211,7 @@ class MultiSelectDropdown extends LitElement {
 
         // Item label
         const label = document.createElement("span");
-        label.textContent = i.name;
+        label.textContent = i.label;
         label.style.fontSize = "16px";
         label.style.fontFamily = "Roboto, sans-serif";
 
@@ -246,7 +246,7 @@ class MultiSelectDropdown extends LitElement {
 
           // HA Checkbox
           const haCheckbox = document.createElement("ha-checkbox");
-          haCheckbox.setAttribute("aria-label", i.name);
+          haCheckbox.setAttribute("aria-label", i.label);
           haCheckbox.checked = checked;
           haCheckbox.style.marginRight = "8px";
           haCheckbox.style.setProperty("--mdc-theme-secondary", "var(--primary-color)");
@@ -257,7 +257,7 @@ class MultiSelectDropdown extends LitElement {
           });
 
           const label = document.createElement("span");
-          label.textContent = i.name;
+          label.textContent = i.label;
           label.style.fontSize = "16px";
           label.style.fontFamily = "Roboto, sans-serif";
 
@@ -339,8 +339,10 @@ class MultiSelectDropdown extends LitElement {
 
     /* ===== ENTITY ROW - Time Spinner Card Style ===== */
     .row {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
       align-items: center;
+      gap: 12px;
       padding: 12px 16px;
       min-height: 56px;
       box-sizing: border-box;
@@ -354,13 +356,13 @@ class MultiSelectDropdown extends LitElement {
     }
 
     /* ===== NAME - Info Text ===== */
-    .name {
+    .label {
       margin-left: 4px;
       margin-inline-start: 4px;
       margin-inline-end: initial;
       padding-right: 5px;
       padding-inline-end: 5px;
-      flex: 1;
+      flex: 1 1 0%;
       color: var(--primary-text-color);
       white-space: nowrap;
       overflow: hidden;
@@ -370,11 +372,10 @@ class MultiSelectDropdown extends LitElement {
     /* ===== SELECT BUTTON - Time Button Style ===== */
     .value-container {
       position: relative;
-      width: 50%;
+      width: auto;
       min-width: 0;
-      flex-shrink: 0;
-      margin-left: 5px;
-      margin-inline-start: 5px;
+      margin-left: 0;
+      margin-inline-start: 0;
       margin-inline-end: initial;
       direction: var(--direction);
     }
@@ -622,7 +623,7 @@ class MultiSelectDropdown extends LitElement {
 
     // Use short_name config for label length
     const shortLen = this.config.short_name || 2;
-    const shortLabel = i => i.name?.substring(0, shortLen);
+    const shortLabel = i => i.label?.substring(0, shortLen);
 
     if (!this.config.item_summarize) {
       return selected.map(i => shortLabel(items[i])).join(", ");
@@ -889,7 +890,7 @@ class MultiSelectDropdownEditor extends LitElement {
                   ? this._renderEditDialog(index, mode) 
                   : html`
                       <div class="item-entry">
-                        <div class="item-name">${item.name || t("empty", this.hass)}</div>
+                        <div class="item-name">${item.label || t("empty", this.hass)}</div>
                         <div class="item-actions">
                           <ha-icon
                             icon="mdi:pencil"
@@ -923,9 +924,9 @@ class MultiSelectDropdownEditor extends LitElement {
     return html`
       <div class="edit-dialog">
         <ha-textfield
-          .value=${item.name || ""}
-          label="${t("name", this.hass)}"
-          @input=${(e) => (this._editingItem = { ...this._editingItem, name: e.target.value })}
+          .value=${item.label || ""}
+          label="${t("label", this.hass)}"
+          @input=${(e) => (this._editingItem = { ...this._editingItem, label: e.target.value })}
         ></ha-textfield>
         ${mode === "text" ? html`
           <ha-textfield
@@ -970,10 +971,35 @@ class MultiSelectDropdownEditor extends LitElement {
     
     if (this._isNewItem) {
       // Neues Item zur Liste hinzufügen
-      items.push(this._editingItem);
+      const mode = this.config.mode || "boolean";
+      const item = { label: this._editingItem.label };
+      if (mode === "text") {
+        // Versuche value als Zahl zu speichern, falls möglich
+        const raw = this._editingItem.value;
+        const num = raw !== undefined && raw !== null && raw !== "" && !isNaN(Number(raw)) ? Number(raw) : raw;
+        item.value = num;
+      } else {
+        // entity als plain string speichern (ohne Anführungszeichen, wenn möglich)
+        const raw = this._editingItem.entity;
+        // Wenn der Wert wie ein Identifier aussieht, lasse ihn unquoted
+        item.entity = (typeof raw === "string" && raw.match(/^[a-zA-Z0-9_\.]+$/)) ? raw : String(raw);
+      }
+      items.push(item);
     } else {
       // Bestehendes Item aktualisieren
-      items[this._editingIndex] = this._editingItem;
+      const mode = this.config.mode || "boolean";
+      const item = { label: this._editingItem.label };
+      if (mode === "text") {
+        // Versuche value als Zahl zu speichern, falls möglich
+        const raw = this._editingItem.value;
+        const num = raw !== undefined && raw !== null && raw !== "" && !isNaN(Number(raw)) ? Number(raw) : raw;
+        item.value = num;
+      } else {
+        // entity als plain string speichern (ohne Anführungszeichen, wenn möglich)
+        const raw = this._editingItem.entity;
+        item.entity = (typeof raw === "string" && raw.match(/^[a-zA-Z0-9_\.]+$/)) ? raw : String(raw);
+      }
+      items[this._editingIndex] = item;
     }
     
     this._editingIndex = null;
@@ -991,7 +1017,10 @@ class MultiSelectDropdownEditor extends LitElement {
   _addItem() {
     // Dialog für neues Item öffnen (ohne zur Config hinzuzufügen)
     this._editingIndex = null;  // Keine Index für neues Item
-    this._editingItem = { name: "", entity: "" };
+    const mode = this.config.mode || "boolean";
+    this._editingItem = mode === "text"
+      ? { label: "", value: "" }
+      : { label: "", entity: "" };
     this._isNewItem = true;
     this.requestUpdate();
   }
@@ -1010,6 +1039,7 @@ class MultiSelectDropdownEditor extends LitElement {
 
   _nameChanged(e) {
     this._fireConfigChanged({ ...this.config, name: e.target.value });
+    this._fireConfigChanged({ ...this.config, label: e.target.value });
   }
 
   _iconChanged(e) {
