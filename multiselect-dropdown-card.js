@@ -335,15 +335,38 @@ class MultiSelectDropdown extends LitElement {
     ha-card {
       border: var(--ha-card-border-width, 1px) solid var(--ha-card-border-color, var(--divider-color, rgba(0, 0, 0, 0.12)));
       box-shadow: var(--ha-card-box-shadow, 0 2px 1px -1px rgba(0, 0, 0, 0.2));
+      overflow: hidden;
+      max-width: 100%;
     }
 
     /* ===== ENTITY ROW - Time Spinner Card Style ===== */
+    .value-container {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .value {
+      max-width: 100%;
+      box-sizing: border-box;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .row {
       display: flex;
       align-items: center;
       padding: 12px 16px;
       min-height: 56px;
       box-sizing: border-box;
+    }
+
+    .name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      display: block;
+      flex: 1 1 0%;
+      color: var(--primary-text-color);
     }
 
     /* ===== ICON - State Badge 40px ===== */
@@ -683,6 +706,22 @@ class MultiSelectDropdown extends LitElement {
         </div>
       </ha-card>
     `;
+  }
+
+  firstUpdated() {
+    // Dynamische Breite des Value-Containers
+    const anchor = this.shadowRoot?.getElementById("anchor");
+    if (anchor) {
+      const width = anchor.offsetWidth;
+      console.log("Anchor-Breite:", width, "px");
+    }
+
+    // Dynamische Breite des Namens/Titels
+    const nameElem = this.shadowRoot?.querySelector('.name');
+    if (nameElem) {
+      const nameWidth = nameElem.offsetWidth;
+      console.log("Name/Titel-Breite:", nameWidth, "px");
+    }
   }
 }
 
