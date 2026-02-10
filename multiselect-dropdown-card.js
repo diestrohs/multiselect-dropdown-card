@@ -45,8 +45,8 @@ class MultiSelectDropdown extends LitElement {
 
 
   setConfig(config) {
-    if (!Array.isArray(config.items)) {
-      throw new Error("items missing");
+    if (!Array.isArray(config.options)) {
+      throw new Error("options missing");
     }
     this.config = {
       item_summarize: false,
@@ -115,12 +115,12 @@ class MultiSelectDropdown extends LitElement {
         } catch (e) {
           selected = [];
         }
-        this.config.items.forEach(item => {
+        this.config.options.forEach(item => {
           this._pendingStates[item.value] = selected.includes(String(item.value));
         });
       } else {
         // Boolean-Modus wie bisher
-        this.config.items.forEach(item => {
+        this.config.options.forEach(item => {
           this._pendingStates[item.entity] = this.hass.states[item.entity]?.state === "on";
         });
       }
@@ -183,7 +183,7 @@ class MultiSelectDropdown extends LitElement {
       window.addEventListener("resize", this._updateOverlayPosition);
       // Items rendern wie gehabt
       this._overlayElement.innerHTML = "";
-      this.config.items.forEach(i => {
+      this.config.options.forEach(i => {
         const key = this.config.mode === "text" ? i.value : i.entity;
         const checked = this._getState(key);
         const itemDiv = document.createElement("div");
@@ -230,7 +230,7 @@ class MultiSelectDropdown extends LitElement {
       this._renderOverlayItems = () => {
         if (!this._overlayElement) return;
         this._overlayElement.innerHTML = "";
-        this.config.items.forEach(i => {
+        this.config.options.forEach(i => {
           const key = this.config.mode === "text" ? i.value : i.entity;
           const checked = this._getState(key);
           const itemDiv = document.createElement("div");
@@ -523,7 +523,7 @@ class MultiSelectDropdown extends LitElement {
     if (!this._pendingStates || Object.keys(this._pendingStates).length === 0) return;
     if (this.config.mode === "text") {
       // Text-Modus: Werte sammeln und in text_entity schreiben
-      const selectedArr = this.config.items
+      const selectedArr = this.config.options
         .filter(item => this._pendingStates[item.value])
         .map(item => item.value);
       // Prüfen, ob vorher ein JSON-Array gespeichert war
@@ -593,14 +593,14 @@ class MultiSelectDropdown extends LitElement {
   /* ===== Summary ===== */
 
   _summary() {
-    const items = this.config.items;
+    const options = this.config.options;
     let selected;
     if (this.config.mode === "text") {
       // Text-Modus: selected = Indizes der gewählten Werte
       let selectedVals = [];
       if (this._open && this._pendingStates) {
         // Live: pending state
-        selectedVals = items
+        selectedVals = options
           .map(i => this._pendingStates[i.value] ? String(i.value) : null)
           .filter(v => v !== null);
       } else {
@@ -608,12 +608,12 @@ class MultiSelectDropdown extends LitElement {
         const textVal = this.hass.states[this.config.text_entity]?.state || "";
         selectedVals = textVal.split(",").map(s => s.trim()).filter(Boolean);
       }
-      selected = items
+      selected = options
         .map((i, idx) => selectedVals.includes(String(i.value)) ? idx : null)
         .filter(i => i !== null);
     } else {
       // Boolean-Modus wie bisher
-      selected = items
+      selected = options
         .map((i, idx) => this._getState(i.entity) ? idx : null)
         .filter(i => i !== null);
     }
@@ -625,7 +625,7 @@ class MultiSelectDropdown extends LitElement {
     const shortLabel = i => i.label?.substring(0, shortLen);
 
     if (!this.config.item_summarize) {
-      return selected.map(i => shortLabel(items[i])).join(", ");
+      return selected.map(i => shortLabel(options[i])).join(", ");
     }
 
     const ranges = [];
@@ -646,12 +646,12 @@ class MultiSelectDropdown extends LitElement {
     return ranges
       .map(([a, b]) => {
         if (a === b) {
-          return shortLabel(items[a]);
+          return shortLabel(options[a]);
         }
         if (b === a + 1) {
-          return `${shortLabel(items[a])}, ${shortLabel(items[b])}`;
+          return `${shortLabel(options[a])}, ${shortLabel(options[b])}`;
         }
-        return `${shortLabel(items[a])} – ${shortLabel(items[b])}`;
+        return `${shortLabel(options[a])} – ${shortLabel(options[b])}`;
       })
       .join(", ");
   }
@@ -800,14 +800,14 @@ class MultiSelectDropdownEditor extends LitElement {
     this.config = {
       item_summarize: false,
       short_name: 2,
-      items: [],
+      options: [],
       ...config,
     };
   }
 
   render() {
     if (!this.hass || !this.config) return html``;
-    const items = this.config.items || [];
+    const options = this.config.options || [];
     const mode = this.config.mode || "boolean";
 
     return html`
@@ -881,9 +881,9 @@ class MultiSelectDropdownEditor extends LitElement {
         </div>
 
         <div class="option">
-          <label>${t("items", this.hass)}</label>
+          <label>${t("options", this.hass)}</label>
           <div class="items-list">
-            ${items.map((item, index) => html`
+            ${options.map((item, index) => html`
               <div>
                 ${this._editingIndex === index 
                   ? this._renderEditDialog(index, mode) 
@@ -960,13 +960,13 @@ class MultiSelectDropdownEditor extends LitElement {
   }
 
   _startEdit(index) {
-    const items = this.config.items || [];
+    const options = this.config.options || [];
     this._editingIndex = index;
     this._editingItem = { ...items[index] };
   }
 
   _saveEdit() {
-    const items = [...(this.config.items || [])];
+    const options = [...(this.config.options || [])];
     
     if (this._isNewItem) {
       // Neues Item zur Liste hinzufügen
@@ -983,7 +983,7 @@ class MultiSelectDropdownEditor extends LitElement {
         // Wenn der Wert wie ein Identifier aussieht, lasse ihn unquoted
         item.entity = (typeof raw === "string" && raw.match(/^[a-zA-Z0-9_\.]+$/)) ? raw : String(raw);
       }
-      items.push(item);
+      options.push(item);
     } else {
       // Bestehendes Item aktualisieren
       const mode = this.config.mode || "boolean";
@@ -998,13 +998,13 @@ class MultiSelectDropdownEditor extends LitElement {
         const raw = this._editingItem.entity;
         item.entity = (typeof raw === "string" && raw.match(/^[a-zA-Z0-9_\.]+$/)) ? raw : String(raw);
       }
-      items[this._editingIndex] = item;
+      options[this._editingIndex] = item;
     }
     
     this._editingIndex = null;
     this._editingItem = null;
     this._isNewItem = false;
-    this._fireConfigChanged({ ...this.config, items });
+    this._fireConfigChanged({ ...this.config, options });
   }
 
   _cancelEdit() {
@@ -1031,9 +1031,9 @@ class MultiSelectDropdownEditor extends LitElement {
   }
 
   _removeItem(index) {
-    const items = [...(this.config.items || [])];
-    items.splice(index, 1);
-    this._fireConfigChanged({ ...this.config, items });
+    const options = [...(this.config.options || [])];
+    options.splice(index, 1);
+    this._fireConfigChanged({ ...this.config, options });
   }
 
   _nameChanged(e) {
